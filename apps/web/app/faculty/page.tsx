@@ -83,16 +83,16 @@ export default function FacultyPage() {
     <div className="mx-auto max-w-3xl">
       {hasRole("FACULTY_COORDINATOR") && (
         <section className="mb-12">
-          <h1 className="mb-2 text-2xl font-bold">Events Awaiting Your Approval</h1>
+          <h1 className="mb-2 font-display text-2xl font-bold">Events Awaiting Your Approval</h1>
           <p className="mb-6 text-sm text-white/50">
             As Faculty Coordinator, your approval publishes an event for your club.
           </p>
           {pendingEvents.length === 0 ? (
-            <p className="text-white/50">No events pending approval.</p>
+            <p className="text-white/40">No events pending approval.</p>
           ) : (
             <div className="space-y-2">
               {pendingEvents.map((e) => (
-                <div key={e.id} className="flex items-center justify-between rounded-lg border border-white/10 bg-surfaceAlt p-4">
+                <div key={e.id} className="glass flex items-center justify-between rounded-2xl p-4">
                   <div>
                     <div className="font-medium">{e.title}</div>
                     <div className="text-sm text-white/50">
@@ -100,7 +100,7 @@ export default function FacultyPage() {
                     </div>
                   </div>
                   <div className="flex gap-3">
-                    <button onClick={() => decideEvent(e.id, "approve")} className="rounded-md bg-brand px-3 py-1.5 text-sm hover:bg-brand-dark">
+                    <button onClick={() => decideEvent(e.id, "approve")} className="btn-primary rounded-full px-4 py-1.5 text-sm font-medium text-white">
                       Approve
                     </button>
                     <button onClick={() => decideEvent(e.id, "reject")} className="text-sm text-red-400 hover:underline">
@@ -114,19 +114,19 @@ export default function FacultyPage() {
         </section>
       )}
 
-      <h1 className="mb-2 text-2xl font-bold">Pending Attendance</h1>
+      <h1 className="mb-2 font-display text-2xl font-bold">Pending Attendance</h1>
       <p className="mb-6 text-sm text-white/50">
         Students who checked in to an event linked to your subject. Approving here credits their official attendance.
       </p>
 
       {rows.length === 0 ? (
-        <p className="text-white/50">Nothing pending — you're all caught up, {user?.name}.</p>
+        <p className="text-white/40">Nothing pending — you're all caught up, {user?.name}.</p>
       ) : (
         <>
           <button
             onClick={approveSelected}
             disabled={selected.size === 0}
-            className="mb-4 rounded-lg bg-brand px-4 py-2 font-medium hover:bg-brand-dark disabled:opacity-40"
+            className="btn-primary mb-4 rounded-full px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
           >
             Approve selected ({selected.size})
           </button>
@@ -134,7 +134,7 @@ export default function FacultyPage() {
             {rows.map((r) => {
               const { user: student, event } = r.attendanceCandidate.checkIn.ticket.registration;
               return (
-                <div key={r.id} className="flex items-center justify-between rounded-lg border border-white/10 bg-surfaceAlt p-4">
+                <div key={r.id} className="glass flex items-center justify-between rounded-2xl p-4">
                   <label className="flex items-center gap-3">
                     <input type="checkbox" checked={selected.has(r.id)} onChange={() => toggle(r.id)} />
                     <div>

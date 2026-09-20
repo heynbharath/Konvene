@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { motion } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
+import { Calendar, Clock, MapPin, Users, CheckCircle2 } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { StatusBadge } from "@/components/StatusBadge";
+import { categoryGradient } from "@/lib/utils";
 
 interface FormField {
   key: string;
@@ -47,7 +50,14 @@ export default function EventDetailPage() {
     });
   }, [slug]);
 
-  if (!event) return <p className="text-white/50">Loading…</p>;
+  if (!event) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-4">
+        <div className="h-48 animate-pulse rounded-2xl bg-white/[0.03]" />
+        <div className="h-8 w-2/3 animate-pulse rounded bg-white/[0.03]" />
+      </div>
+    );
+  }
 
   const fields: FormField[] = event.form ? JSON.parse(event.form.schemaJson) : [];
   const spotsLeft = event.capacity - event._count.registrations;
@@ -72,49 +82,66 @@ export default function EventDetailPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="mb-2 text-xs uppercase tracking-wide text-brand">{event.category}</div>
-      <h1 className="text-3xl font-bold">{event.title}</h1>
-      <p className="mt-1 text-white/50">by {event.club.name}</p>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br ${categoryGradient(event.category)} p-8`}
+      >
+        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute inset-0 opacity-30 mix-blend-overlay bg-grid-pattern bg-grid" />
+        <div className="relative">
+          <span className="rounded-full bg-black/30 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
+            {event.category}
+          </span>
+          <h1 className="mt-4 font-display text-3xl font-bold text-white sm:text-4xl">{event.title}</h1>
+          <p className="mt-1 text-white/80">by {event.club.name}</p>
+        </div>
+      </motion.div>
 
-      <div className="mt-6 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
-        <div><div className="text-white/40">Starts</div>{new Date(event.startAt).toLocaleString()}</div>
-        <div><div className="text-white/40">Ends</div>{new Date(event.endAt).toLocaleString()}</div>
-        <div><div className="text-white/40">Venue</div>{event.venue}</div>
-        <div><div className="text-white/40">Spots left</div>{Math.max(spotsLeft, 0)}</div>
+      <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {[
+          { icon: Calendar, label: "Starts", value: new Date(event.startAt).toLocaleDateString(undefined, { month: "short", day: "numeric" }) },
+          { icon: Clock, label: "Time", value: new Date(event.startAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) },
+          { icon: MapPin, label: "Venue", value: event.venue },
+          { icon: Users, label: "Spots left", value: Math.max(spotsLeft, 0).toString() },
+        ].map((item) => (
+          <div key={item.label} className="glass rounded-xl p-4">
+            <item.icon className="mb-2 h-4 w-4 text-brand-light" />
+            <div className="text-xs text-white/40">{item.label}</div>
+            <div className="truncate text-sm font-medium">{item.value}</div>
+          </div>
+        ))}
       </div>
 
-      <p className="mt-6 whitespace-pre-wrap text-white/80">{event.description}</p>
+      <p className="mb-10 whitespace-pre-wrap leading-relaxed text-white/70">{event.description}</p>
 
-      <div className="mt-10 rounded-xl border border-white/10 bg-surfaceAlt p-6">
+      <div className="glass rounded-2xl p-6 sm:p-8">
         {result ? (
           <RegistrationResult result={result} />
         ) : (
           <>
-            <h2 className="mb-4 text-xl font-semibold">Register</h2>
-            <label className="mb-1 block text-sm text-white/60">Ticket type</label>
+            <h2 className="mb-5 font-display text-xl font-bold">Register for this event</h2>
+            <label className="mb-1.5 block text-xs font-medium text-white/50">Ticket type</label>
             <select
               value={ticketTypeId}
               onChange={(e) => setTicketTypeId(e.target.value)}
-              className="mb-4 w-full rounded-lg border border-white/10 bg-surface px-3 py-2"
+              className="mb-5 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm outline-none focus:border-brand/50"
             >
               {event.ticketTypes.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
+                <option key={t.id} value={t.id}>{t.name}</option>
               ))}
             </select>
 
             {fields.map((f) => (
-              <div key={f.key} className="mb-4">
-                <label className="mb-1 block text-sm text-white/60">
-                  {f.label}
-                  {f.required && " *"}
+              <div key={f.key} className="mb-5">
+                <label className="mb-1.5 block text-xs font-medium text-white/50">
+                  {f.label}{f.required && " *"}
                 </label>
                 {f.type === "select" ? (
                   <select
                     required={f.required}
                     onChange={(e) => setFormValues((v) => ({ ...v, [f.key]: e.target.value }))}
-                    className="w-full rounded-lg border border-white/10 bg-surface px-3 py-2"
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm outline-none focus:border-brand/50"
                   >
                     <option value="">Select…</option>
                     {f.options?.map((o) => <option key={o} value={o}>{o}</option>)}
@@ -123,13 +150,13 @@ export default function EventDetailPage() {
                   <textarea
                     required={f.required}
                     onChange={(e) => setFormValues((v) => ({ ...v, [f.key]: e.target.value }))}
-                    className="w-full rounded-lg border border-white/10 bg-surface px-3 py-2"
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm outline-none focus:border-brand/50"
                   />
                 ) : (
                   <input
                     required={f.required}
                     onChange={(e) => setFormValues((v) => ({ ...v, [f.key]: e.target.value }))}
-                    className="w-full rounded-lg border border-white/10 bg-surface px-3 py-2"
+                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm outline-none focus:border-brand/50"
                   />
                 )}
               </div>
@@ -139,9 +166,9 @@ export default function EventDetailPage() {
             <button
               onClick={register}
               disabled={busy || !user}
-              className="w-full rounded-lg bg-brand py-2 font-medium hover:bg-brand-dark disabled:opacity-50"
+              className="btn-primary w-full rounded-xl py-3 text-sm font-semibold text-white disabled:opacity-50"
             >
-              {!user ? "Log in to register" : busy ? "Registering…" : spotsLeft <= 0 ? "Join waitlist" : "Register"}
+              {!user ? "Log in to register" : busy ? "Registering…" : spotsLeft <= 0 ? "Join waitlist" : "Register now"}
             </button>
           </>
         )}
@@ -163,9 +190,11 @@ function RegistrationResult({ result }: { result: any }) {
   }
   return (
     <div className="text-center">
-      <StatusBadge status="ISSUED" />
-      <p className="mt-3 mb-4 text-white/70">You're in! Show this QR code at the door.</p>
-      <div className="inline-block rounded-xl bg-white p-4">
+      <div className="mb-3 flex justify-center">
+        <CheckCircle2 className="h-10 w-10 text-emerald-400" />
+      </div>
+      <p className="mb-5 text-lg font-semibold">You're in! Show this QR code at the door.</p>
+      <div className="mx-auto inline-block rounded-2xl bg-white p-5">
         <QRCodeSVG value={result.ticket.qrToken} size={180} />
       </div>
       <p className="mt-3 text-xs text-white/40">Ticket ID: {result.ticket.id}</p>

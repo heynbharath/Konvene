@@ -10,6 +10,7 @@ import { registrationsRouter } from "./routes/registrations";
 import { checkinRouter } from "./routes/checkin";
 import { facultyRouter } from "./routes/faculty";
 import { certificatesRouter } from "./routes/certificates";
+import { statsRouter } from "./routes/stats";
 
 export const app = express();
 
@@ -33,3 +34,4 @@ app.use("/", registrationsRouter); // exposes /events/:eventId/register and /reg
 app.use("/checkin", checkinRouter);
 app.use("/faculty", facultyRouter);
 app.use("/", certificatesRouter); // exposes /events/:id/issue-certificates and /verify/:certId
+app.use("/", statsRouter); // exposes /stats

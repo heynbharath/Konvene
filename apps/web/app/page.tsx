@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { api } from "@/lib/api";
+import { Hero } from "@/components/Hero";
+import { EventCard } from "@/components/EventCard";
+import { Search } from "lucide-react";
 
-interface EventCard {
+interface EventCardData {
   id: string;
   title: string;
   slug: string;
@@ -13,82 +15,99 @@ interface EventCard {
   startAt: string;
   capacity: number;
   club: { name: string; logoUrl?: string };
-  ticketTypes: { name: string }[];
   _count: { registrations: number };
 }
 
+const CATEGORIES = [
+  "WORKSHOP", "HACKATHON", "CONFERENCE", "TALK", "SEMINAR", "SPORTS", "CULTURAL",
+  "TECHNICAL", "MUSIC", "DANCE", "FEST", "BOOTCAMP", "PLACEMENT", "COMPETITION",
+];
+
 export default function DiscoverPage() {
-  const [events, setEvents] = useState<EventCard[]>([]);
+  const [events, setEvents] = useState<EventCardData[]>([]);
   const [category, setCategory] = useState("");
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    api<EventCard[]>(`/events${category ? `?category=${category}` : ""}`)
+    const params = new URLSearchParams();
+    if (category) params.set("category", category);
+    if (query) params.set("q", query);
+    api<EventCardData[]>(`/events${params.toString() ? `?${params}` : ""}`)
       .then(setEvents)
       .finally(() => setLoading(false));
-  }, [category]);
-
-  const categories = [
-    "WORKSHOP", "HACKATHON", "CONFERENCE", "TALK", "SEMINAR", "SPORTS", "CULTURAL",
-    "TECHNICAL", "MUSIC", "DANCE", "FEST", "BOOTCAMP", "PLACEMENT", "COMPETITION",
-  ];
+  }, [category, query]);
 
   return (
     <div>
-      <section className="mb-10 text-center">
-        <h1 className="text-4xl font-extrabold tracking-tight">
-          One platform for every event <span className="text-brand">happening on campus</span>
-        </h1>
-        <p className="mt-3 text-white/60">
-          Discover, register, check in, and get verified attendance — all in one place.
-        </p>
-      </section>
+      <Hero />
 
-      <div className="mb-6 flex flex-wrap gap-2">
-        <button
-          onClick={() => setCategory("")}
-          className={`rounded-full px-3 py-1 text-sm ${category === "" ? "bg-brand" : "bg-white/10 hover:bg-white/20"}`}
-        >
-          All
-        </button>
-        {categories.map((c) => (
+      <section id="events" className="scroll-mt-24">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="font-display text-2xl font-bold">Happening now</h2>
+          <div className="relative w-full sm:w-72">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search events…"
+              className="w-full rounded-full border border-white/10 bg-white/[0.03] py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand/50"
+            />
+          </div>
+        </div>
+
+        <div className="mb-8 flex flex-wrap gap-2">
           <button
-            key={c}
-            onClick={() => setCategory(c)}
-            className={`rounded-full px-3 py-1 text-sm ${category === c ? "bg-brand" : "bg-white/10 hover:bg-white/20"}`}
+            onClick={() => setCategory("")}
+            className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
+              category === "" ? "bg-white text-black" : "border border-white/10 bg-white/[0.03] text-white/60 hover:text-white"
+            }`}
           >
-            {c}
+            All
           </button>
-        ))}
-      </div>
-
-      {loading ? (
-        <p className="text-white/50">Loading events…</p>
-      ) : events.length === 0 ? (
-        <p className="text-white/50">No published events yet in this category.</p>
-      ) : (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {events.map((e) => (
-            <Link
-              key={e.id}
-              href={`/events/${e.slug}`}
-              className="group rounded-xl border border-white/10 bg-surfaceAlt p-5 transition hover:border-brand/60"
+          {CATEGORIES.map((c) => (
+            <button
+              key={c}
+              onClick={() => setCategory(c)}
+              className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                category === c ? "bg-white text-black" : "border border-white/10 bg-white/[0.03] text-white/60 hover:text-white"
+              }`}
             >
-              <div className="mb-2 text-xs uppercase tracking-wide text-brand">{e.category}</div>
-              <h3 className="text-lg font-semibold group-hover:text-brand">{e.title}</h3>
-              <p className="mt-1 text-sm text-white/50">{e.club.name}</p>
-              <div className="mt-4 flex items-center justify-between text-sm text-white/60">
-                <span>{new Date(e.startAt).toLocaleDateString()}</span>
-                <span>{e.venue}</span>
-              </div>
-              <div className="mt-2 text-sm">
-                {e._count.registrations}/{e.capacity} registered
-              </div>
-            </Link>
+              {c}
+            </button>
           ))}
         </div>
-      )}
+
+        {loading ? (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-72 animate-pulse rounded-2xl border border-white/[0.06] bg-white/[0.02]" />
+            ))}
+          </div>
+        ) : events.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-white/10 py-20 text-center text-white/40">
+            No published events match yet — check back soon.
+          </div>
+        ) : (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {events.map((e, i) => (
+              <EventCard
+                key={e.id}
+                slug={e.slug}
+                title={e.title}
+                category={e.category}
+                clubName={e.club.name}
+                startAt={e.startAt}
+                venue={e.venue}
+                registered={e._count.registrations}
+                capacity={e.capacity}
+                index={i}
+              />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

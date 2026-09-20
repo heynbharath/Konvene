@@ -13,8 +13,7 @@ usersRouter.get("/me", requireAuth, loadRoles, async (req: AuthedRequest, res) =
     },
   });
   if (!user) return res.status(404).json({ error: "Not found" });
-  const { passwordHash, ...safe } = user;
-  res.json({ ...safe, roles: req.roles });
+  res.json({ ...user, roles: req.roles });
 });
 
 usersRouter.get("/me/tickets", requireAuth, async (req: AuthedRequest, res) => {

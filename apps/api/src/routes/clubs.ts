@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { AuthedRequest, requireAuth, loadRoles, requireRole, hasScopedRole } from "../lib/rbac";
-import { verifyAccessToken } from "../lib/jwt";
+import { verifySupabaseToken } from "../lib/supabaseAdmin";
 
 export const clubsRouter = Router();
 
@@ -26,15 +26,14 @@ clubsRouter.get("/:slug", async (req: AuthedRequest, res) => {
   let canSeeAll = false;
   const header = req.headers.authorization;
   if (header?.startsWith("Bearer ")) {
-    try {
-      const { userId } = verifyAccessToken(header.slice("Bearer ".length));
-      const roles = await prisma.userRoleAssignment.findMany({ where: { userId } });
+    const authUser = await verifySupabaseToken(header.slice("Bearer ".length));
+    if (authUser) {
+      const roles = await prisma.userRoleAssignment.findMany({ where: { userId: authUser.id } });
       canSeeAll =
         hasScopedRole(roles, "CLUB_HEAD", "CLUB", club.id) ||
         hasScopedRole(roles, "FACULTY_COORDINATOR", "CLUB", club.id);
-    } catch {
-      // invalid/expired token on a public route just falls back to public visibility
     }
+    // invalid/expired token on a public route just falls back to public visibility
   }
 
   const full = await prisma.club.findUnique({

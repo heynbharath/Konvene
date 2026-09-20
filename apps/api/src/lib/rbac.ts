@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { verifyAccessToken } from "./jwt";
+import { verifySupabaseToken } from "./supabaseAdmin";
 import { prisma } from "./prisma";
 
 export type Role =
@@ -22,18 +22,23 @@ export interface AuthedRequest extends Request {
   roles?: { role: string; scopeType: string; scopeId: string | null }[];
 }
 
-export function requireAuth(req: AuthedRequest, res: Response, next: NextFunction) {
+/**
+ * Authentication is delegated entirely to Supabase Auth — this just verifies
+ * the bearer token against Supabase (password hashing, session issuance, and
+ * expiry are all Supabase's responsibility, not ours) and resolves it to the
+ * matching app-level user id.
+ */
+export async function requireAuth(req: AuthedRequest, res: Response, next: NextFunction) {
   const header = req.headers.authorization;
   if (!header?.startsWith("Bearer ")) {
     return res.status(401).json({ error: "Missing bearer token" });
   }
-  try {
-    const payload = verifyAccessToken(header.slice("Bearer ".length));
-    req.userId = payload.userId;
-    next();
-  } catch {
+  const authUser = await verifySupabaseToken(header.slice("Bearer ".length));
+  if (!authUser) {
     return res.status(401).json({ error: "Invalid or expired token" });
   }
+  req.userId = authUser.id;
+  next();
 }
 
 /** Loads the caller's role assignments onto the request for scope-aware checks. */

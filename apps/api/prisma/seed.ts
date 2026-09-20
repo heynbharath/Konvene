@@ -1,11 +1,39 @@
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
+import { createClient } from "@supabase/supabase-js";
 
 const prisma = new PrismaClient();
 
-async function main() {
-  const passwordHash = await bcrypt.hash("password123", 10);
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set to seed — demo accounts are real Supabase Auth users.");
+}
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { autoRefreshToken: false, persistSession: false },
+});
 
+const DEMO_PASSWORD = "password123";
+
+/** Creates a real Supabase Auth user (or reuses one if it already exists) and returns its id. */
+async function ensureAuthUser(email: string): Promise<string> {
+  const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
+    email,
+    password: DEMO_PASSWORD,
+    email_confirm: true,
+  });
+  if (created?.user) return created.user.id;
+
+  // Already exists (re-running the seed) — look it up instead of failing.
+  if (error?.status === 422 || error?.message?.toLowerCase().includes("already")) {
+    const { data: list } = await supabaseAdmin.auth.admin.listUsers();
+    const existing = list.users.find((u) => u.email === email);
+    if (existing) return existing.id;
+  }
+  throw error ?? new Error(`Could not create or find auth user for ${email}`);
+}
+
+async function main() {
   const dept = await prisma.department.create({
     data: { name: "School of Engineering", code: "ENG" },
   });
@@ -22,20 +50,22 @@ async function main() {
     data: { name: "Compiler Design", code: "CS301", semester: 5, branchId: branch.id },
   });
 
+  const adminId = await ensureAuthUser("admin@konvene.dev");
   const admin = await prisma.user.create({
     data: {
+      id: adminId,
       name: "Ada Admin",
       email: "admin@konvene.dev",
-      passwordHash,
       roleAssignments: { create: { role: "ADMIN", scopeType: "GLOBAL" } },
     },
   });
 
+  const facultyId = await ensureAuthUser("faculty@konvene.dev");
   const faculty = await prisma.user.create({
     data: {
+      id: facultyId,
       name: "Dr. Rao",
       email: "faculty@konvene.dev",
-      passwordHash,
       roleAssignments: { create: { role: "FACULTY", scopeType: "SUBJECT", scopeId: subject.id } },
     },
   });
@@ -44,11 +74,12 @@ async function main() {
     data: { subjectId: subject.id, sectionId: section.id, facultyUserId: faculty.id },
   });
 
+  const clubHeadId = await ensureAuthUser("clubhead@konvene.dev");
   const clubHead = await prisma.user.create({
     data: {
+      id: clubHeadId,
       name: "Priya (Club Head)",
       email: "clubhead@konvene.dev",
-      passwordHash,
       roleAssignments: { create: { role: "CLUB_HEAD", scopeType: "GLOBAL" } },
     },
   });
@@ -72,22 +103,24 @@ async function main() {
     data: { userId: faculty.id, role: "FACULTY_COORDINATOR", scopeType: "CLUB", scopeId: club.id },
   });
 
+  const student1Id = await ensureAuthUser("student1@konvene.dev");
   const student1 = await prisma.user.create({
     data: {
+      id: student1Id,
       name: "Arjun Student",
       email: "student1@konvene.dev",
       usn: "1CS21CS001",
-      passwordHash,
       roleAssignments: { create: { role: "STUDENT", scopeType: "GLOBAL" } },
       studentProfile: { create: { sectionId: section.id, year: 3, semester: 5 } },
     },
   });
+  const student2Id = await ensureAuthUser("student2@konvene.dev");
   const student2 = await prisma.user.create({
     data: {
+      id: student2Id,
       name: "Meera Student",
       email: "student2@konvene.dev",
       usn: "1CS21CS002",
-      passwordHash,
       roleAssignments: { create: { role: "STUDENT", scopeType: "GLOBAL" } },
       studentProfile: { create: { sectionId: section.id, year: 3, semester: 5 } },
     },
@@ -150,7 +183,7 @@ async function main() {
     event: event.slug,
     pendingApprovalEvent: pendingEvent.slug,
   });
-  console.log("All demo accounts use password: password123");
+  console.log(`All demo accounts are real Supabase Auth users. Password: ${DEMO_PASSWORD}`);
 }
 
 main()

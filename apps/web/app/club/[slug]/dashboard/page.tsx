@@ -112,18 +112,18 @@ export default function ClubDashboardPage() {
 
   return (
     <div>
-      <h1 className="mb-1 text-2xl font-bold">{club.name} — Dashboard</h1>
-      <div className="mb-6 flex flex-wrap items-center gap-3">
+      <h1 className="mb-1 font-display text-2xl font-bold">{club.name} <span className="text-white/30">/ Dashboard</span></h1>
+      <div className="mb-8 mt-4 flex flex-wrap items-center gap-3">
         <select
           value={eventId}
           onChange={(e) => setEventId(e.target.value)}
-          className="rounded-lg border border-white/10 bg-surfaceAlt px-3 py-2"
+          className="rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm outline-none focus:border-brand/50"
         >
           {club.events.map((e) => <option key={e.id} value={e.id}>{e.title}</option>)}
         </select>
         {selectedEvent && <StatusBadge status={selectedEvent.status} />}
         {selectedEvent?.status === "DRAFT" && (
-          <button onClick={submitForApproval} className="rounded-md bg-brand px-3 py-1.5 text-sm hover:bg-brand-dark">
+          <button onClick={submitForApproval} className="btn-primary rounded-full px-4 py-2 text-sm font-medium text-white">
             Submit for approval
           </button>
         )}
@@ -138,11 +138,11 @@ export default function ClubDashboardPage() {
         </div>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        <div className="rounded-xl border border-white/10 bg-surfaceAlt p-6">
-          <h2 className="mb-4 text-lg font-semibold">QR Check-in Scanner</h2>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="glass rounded-2xl p-6">
+          <h2 className="mb-4 font-display text-lg font-bold">QR Check-in Scanner</h2>
           {!scanning ? (
-            <button onClick={() => setScanning(true)} className="rounded-lg bg-brand px-4 py-2 font-medium hover:bg-brand-dark">
+            <button onClick={() => setScanning(true)} className="btn-primary rounded-full px-5 py-2.5 text-sm font-semibold text-white">
               Start scanning
             </button>
           ) : (
@@ -154,7 +154,7 @@ export default function ClubDashboardPage() {
             </>
           )}
           {scanResult && (
-            <div className="mt-5 rounded-lg border border-white/10 p-4">
+            <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.02] p-4">
               <StatusBadge status={scanResult.result ?? "INVALID"} />
               {scanResult.name && <p className="mt-2 font-semibold">{scanResult.name}</p>}
               {scanResult.usn && <p className="text-sm text-white/50">{scanResult.usn}</p>}
@@ -164,13 +164,13 @@ export default function ClubDashboardPage() {
             </div>
           )}
 
-          <div className="mt-6 border-t border-white/10 pt-5">
+          <div className="mt-6 border-t border-white/[0.06] pt-5">
             <h3 className="mb-2 text-sm font-semibold text-white/70">Manual check-in (lost/unreadable QR)</h3>
             <input
               value={searchQuery}
               onChange={(e) => runSearch(e.target.value)}
               placeholder="Search by name or USN…"
-              className="w-full rounded-lg border border-white/10 bg-surface px-3 py-2 text-sm"
+              className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm outline-none focus:border-brand/50"
             />
             {searchResults.length > 0 && (
               <div className="mt-2 space-y-1">
@@ -179,7 +179,7 @@ export default function ClubDashboardPage() {
                     key={r.id}
                     onClick={() => manualCheckIn(r.id)}
                     disabled={r.ticket?.status === "CHECKED_IN"}
-                    className="flex w-full items-center justify-between rounded-md bg-white/5 px-3 py-2 text-left text-sm hover:bg-white/10 disabled:opacity-40"
+                    className="flex w-full items-center justify-between rounded-lg bg-white/[0.03] px-3.5 py-2.5 text-left text-sm hover:bg-white/[0.07] disabled:opacity-40"
                   >
                     <span>{r.user.name} <span className="text-white/40">· {r.user.usn ?? "—"}</span></span>
                     <StatusBadge status={r.ticket?.status ?? "ISSUED"} />
@@ -190,11 +190,11 @@ export default function ClubDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-surfaceAlt p-6">
-          <h2 className="mb-4 text-lg font-semibold">Registrations</h2>
-          <div className="max-h-96 space-y-2 overflow-y-auto">
+        <div className="glass rounded-2xl p-6">
+          <h2 className="mb-4 font-display text-lg font-bold">Registrations</h2>
+          <div className="max-h-96 space-y-1 overflow-y-auto">
             {registrations.map((r) => (
-              <div key={r.id} className="flex items-center justify-between border-b border-white/5 py-2 text-sm">
+              <div key={r.id} className="flex items-center justify-between border-b border-white/[0.04] py-2.5 text-sm">
                 <div>
                   <div>{r.user.name}</div>
                   <div className="text-white/40">{r.user.usn ?? "—"} · {r.ticketType.name}</div>
@@ -211,8 +211,8 @@ export default function ClubDashboardPage() {
 
 function StatCard({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
   return (
-    <div className={`rounded-xl border border-white/10 p-4 ${highlight ? "bg-brand/10" : "bg-surfaceAlt"}`}>
-      <div className="text-2xl font-bold">{value}</div>
+    <div className={`rounded-2xl border p-4 ${highlight ? "border-brand/30 bg-brand/10" : "glass"}`}>
+      <div className="font-display text-2xl font-bold">{value}</div>
       <div className="text-xs text-white/50">{label}</div>
     </div>
   );

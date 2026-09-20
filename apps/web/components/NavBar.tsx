@@ -1,32 +1,59 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth";
+import { cn } from "@/lib/utils";
+import { Sparkles } from "lucide-react";
 
 export function NavBar() {
   const { user, logout } = useAuth();
+  const pathname = usePathname();
+
+  const links = [
+    { href: "/", label: "Discover" },
+    ...(user ? [{ href: "/tickets", label: "My Tickets" }, { href: "/faculty", label: "Faculty" }] : []),
+  ];
 
   return (
-    <header className="border-b border-white/10 bg-surfaceAlt/60 backdrop-blur sticky top-0 z-10">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/" className="text-lg font-bold tracking-tight">
-          <span className="text-brand">Konvene</span>
+    <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-surface/70 backdrop-blur-xl">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+        <Link href="/" className="group flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-fuchsia-500 shadow-lg shadow-brand/30 transition-transform group-hover:scale-105">
+            <Sparkles className="h-4 w-4 text-white" strokeWidth={2.5} />
+          </div>
+          <span className="font-display text-lg font-semibold tracking-tight">Konvene</span>
         </Link>
-        <div className="flex items-center gap-4 text-sm">
-          <Link href="/" className="hover:text-brand">Discover</Link>
-          {user && <Link href="/tickets" className="hover:text-brand">My Tickets</Link>}
-          {user && <Link href="/faculty" className="hover:text-brand">Faculty</Link>}
+
+        <div className="hidden items-center gap-1 rounded-full border border-white/[0.06] bg-white/[0.02] p-1 sm:flex">
+          {links.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className={cn(
+                "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+                pathname === l.href ? "bg-white/10 text-white" : "text-white/60 hover:text-white"
+              )}
+            >
+              {l.label}
+            </Link>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-3 text-sm">
           {user ? (
-            <div className="flex items-center gap-3">
-              <span className="text-white/60">{user.name}</span>
-              <button onClick={logout} className="rounded-md bg-white/10 px-3 py-1.5 hover:bg-white/20">
+            <>
+              <span className="hidden text-white/50 sm:inline">{user.name}</span>
+              <button onClick={logout} className="btn-ghost rounded-full px-4 py-2 font-medium">
                 Log out
               </button>
-            </div>
+            </>
           ) : (
             <>
-              <Link href="/login" className="hover:text-brand">Log in</Link>
-              <Link href="/signup" className="rounded-md bg-brand px-3 py-1.5 font-medium hover:bg-brand-dark">
+              <Link href="/login" className="px-2 text-white/70 hover:text-white">
+                Log in
+              </Link>
+              <Link href="/signup" className="btn-primary rounded-full px-4 py-2 font-medium text-white">
                 Sign up
               </Link>
             </>
