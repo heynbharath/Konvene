@@ -57,7 +57,11 @@ authRouter.post("/signup", async (req, res) => {
     return res.status(500).json({ error: "Account created but sign-in failed — try logging in." });
   }
 
-  res.status(201).json({ token: session.session.access_token, user: { id: created.user.id, name, email } });
+  res.status(201).json({
+    token: session.session.access_token,
+    refreshToken: session.session.refresh_token,
+    user: { id: created.user.id, name, email },
+  });
 });
 
 const loginSchema = z.object({
@@ -78,5 +82,9 @@ authRouter.post("/login", async (req, res) => {
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (!user) return res.status(404).json({ error: "Account exists in auth but has no app profile" });
 
-  res.json({ token: session.session.access_token, user: { id: user.id, name: user.name, email: user.email } });
+  res.json({
+    token: session.session.access_token,
+    refreshToken: session.session.refresh_token,
+    user: { id: user.id, name: user.name, email: user.email },
+  });
 });

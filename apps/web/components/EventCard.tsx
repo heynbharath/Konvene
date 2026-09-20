@@ -6,6 +6,8 @@ import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Calendar, MapPin, Users } from "lucide-react";
 import { categoryStyle } from "@/lib/utils";
 
+const MotionLink = motion.create(Link);
+
 interface EventCardProps {
   slug: string;
   title: string;
@@ -46,14 +48,14 @@ export function EventCard({ slug, title, category, clubName, startAt, venue, reg
       transition={{ duration: 0.4, delay: index * 0.05, ease: "easeOut" }}
       style={{ perspective: 800 }}
     >
-      <Link href={`/events/${slug}`} legacyBehavior passHref>
-        <motion.a
-          ref={ref}
-          onMouseMove={onMouseMove}
-          onMouseLeave={onMouseLeave}
-          style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-          className="card card-hover block overflow-hidden"
-        >
+      <MotionLink
+        href={`/events/${slug}`}
+        ref={ref}
+        onMouseMove={onMouseMove}
+        onMouseLeave={onMouseLeave}
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        className="card card-hover block overflow-hidden"
+      >
         <div className="relative h-28 w-full border-b-[1.5px] border-ink" style={{ backgroundColor: bg }}>
           <div className="absolute inset-0 bg-dot-grid bg-dots opacity-20 mix-blend-overlay" />
           <span
@@ -96,8 +98,7 @@ export function EventCard({ slug, title, category, clubName, startAt, venue, reg
             </div>
           </div>
         </div>
-        </motion.a>
-      </Link>
+      </MotionLink>
     </motion.div>
   );
 }

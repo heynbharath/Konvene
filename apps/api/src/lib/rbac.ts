@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { verifySupabaseToken } from "./supabaseAdmin";
+import { verifySupabaseToken, VerifiedAuthUser } from "./supabaseAdmin";
 import { prisma } from "./prisma";
 
 export type Role =
@@ -19,6 +19,7 @@ export type Role =
 
 export interface AuthedRequest extends Request {
   userId?: string;
+  authUser?: VerifiedAuthUser;
   roles?: { role: string; scopeType: string; scopeId: string | null }[];
 }
 
@@ -38,6 +39,7 @@ export async function requireAuth(req: AuthedRequest, res: Response, next: NextF
     return res.status(401).json({ error: "Invalid or expired token" });
   }
   req.userId = authUser.id;
+  req.authUser = authUser;
   next();
 }
 

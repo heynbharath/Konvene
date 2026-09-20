@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { OAuthButtons } from "@/components/OAuthButtons";
 
 export default function SignupPage() {
   const { signup } = useAuth();
@@ -42,7 +43,16 @@ export default function SignupPage() {
           <p className="mt-1 text-sm text-inkSoft">Create your Konvene account</p>
         </div>
 
-        <form onSubmit={onSubmit} className="card space-y-4 p-6">
+        <div className="card space-y-4 p-6">
+          <OAuthButtons />
+
+          <div className="flex items-center gap-3 py-1">
+            <div className="h-px flex-1 bg-ink/20" />
+            <span className="font-mono text-[10px] uppercase tracking-widest text-inkSoft">or with email</span>
+            <div className="h-px flex-1 bg-ink/20" />
+          </div>
+
+          <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <label className="mb-1.5 block font-mono text-[11px] font-semibold uppercase tracking-wide text-inkSoft">Full name</label>
             <input required value={name} onChange={(e) => setName(e.target.value)}
@@ -70,7 +80,8 @@ export default function SignupPage() {
           >
             {busy ? "Creating account…" : "Sign up"} {!busy && <ArrowRight className="h-4 w-4" />}
           </button>
-        </form>
+          </form>
+        </div>
 
         <p className="mt-6 text-center text-sm text-inkSoft">
           Already have an account?{" "}

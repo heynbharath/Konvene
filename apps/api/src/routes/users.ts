@@ -4,15 +4,33 @@ import { AuthedRequest, requireAuth, loadRoles } from "../lib/rbac";
 
 export const usersRouter = Router();
 
+const profileInclude = {
+  studentProfile: { include: { section: { include: { branch: true } } } },
+  clubMemberships: { include: { club: true } },
+} as const;
+
 usersRouter.get("/me", requireAuth, loadRoles, async (req: AuthedRequest, res) => {
-  const user = await prisma.user.findUnique({
-    where: { id: req.userId },
-    include: {
-      studentProfile: { include: { section: { include: { branch: true } } } },
-      clubMemberships: { include: { club: true } },
-    },
-  });
-  if (!user) return res.status(404).json({ error: "Not found" });
+  let user = await prisma.user.findUnique({ where: { id: req.userId }, include: profileInclude });
+
+  // First-time OAuth login (Google/GitHub): Supabase already created the auth
+  // identity, but our app-level profile row doesn't exist yet. Provision it
+  // here from the provider's profile data instead of requiring a separate
+  // signup step that OAuth users never go through.
+  if (!user) {
+    const authUser = req.authUser!;
+    user = await prisma.user.create({
+      data: {
+        id: authUser.id,
+        name: authUser.name ?? authUser.email.split("@")[0],
+        email: authUser.email,
+        avatarUrl: authUser.avatarUrl,
+        roleAssignments: { create: { role: "STUDENT", scopeType: "GLOBAL" } },
+      },
+      include: profileInclude,
+    });
+    req.roles = await prisma.userRoleAssignment.findMany({ where: { userId: req.userId } });
+  }
+
   res.json({ ...user, roles: req.roles });
 });
 
