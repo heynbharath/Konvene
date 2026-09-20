@@ -15,7 +15,7 @@ const registerSchema = z.object({
  * Registers the caller for an event and issues a signed QR ticket immediately
  * (Konvene doesn't process payments — every ticket type is free). When the
  * ticket type is at capacity, the registration is WAITLISTED instead of
- * rejected, matching Luma-style waitlist behavior.
+ * rejected, and promoted automatically if a spot later opens up.
  */
 registrationsRouter.post("/events/:eventId/register", requireAuth, async (req: AuthedRequest, res) => {
   const parsed = registerSchema.safeParse(req.body);

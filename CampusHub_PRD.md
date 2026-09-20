@@ -2,7 +2,7 @@
 
 **Tagline:** One platform for every event happening across your campus.
 **Alternative names considered:** Campus Events OS, CampusConnect, UniFlow, EventSphere
-**Version:** 1.0 | **Date:** 2026-09-20 | **Owner:** Founder/Solo Builder (build target: Antigravity IDE)
+**Version:** 1.0 | **Date:** 2026-09-20 | **Owner:** Sunaina Mohapatra (ENG24CT0058)
 
 ---
 
@@ -22,7 +22,7 @@ College event lifecycles (registration → payment → ticketing → check-in �
 
 1. **Single source of truth for campus events** — every club's events discoverable in one place, replacing WhatsApp broadcast + Google Forms as the default registration path.
 2. **Real, tamper-resistant check-in** — QR-based check-in that cannot be duplicated or spoofed, replacing manual sign-in sheets.
-3. **Faculty-verified attendance tied to academic structure** — attendance credited only after the specific subject/class faculty confirms it, not a generic organizer click — this is the feature no competitor (including Luma) has, because Luma has no concept of "class," "section," or "subject faculty."
+3. **Faculty-verified attendance tied to academic structure** — attendance credited only after the specific subject/class faculty confirms it, not a generic organizer click — this is a feature no generic event platform has, because none of them have a concept of "class," "section," or "subject faculty."
 4. **Zero-manual certificate issuance** — certificates auto-generate and are independently QR-verifiable, eliminating Canva+manual-Google-Drive-link certificate distribution.
 5. **One click from "event happens" to "usable data"** — live dashboards for club heads, faculty, and admin without exporting anything to Excel.
 

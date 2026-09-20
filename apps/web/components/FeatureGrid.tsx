@@ -79,7 +79,7 @@ function IconForm() {
 const FEATURES = [
   {
     icon: IconShieldCheck, title: "Faculty-verified attendance", bg: "#D6FF3F", big: true,
-    desc: "Check-in routes to the exact subject faculty for that student's section — not a generic organizer click. This is the one thing Luma can't do for a college.",
+    desc: "Check-in routes to the exact subject faculty for that student's section — not a generic organizer click. No generic event platform does this for a college.",
   },
   { icon: IconQR, title: "Signed QR tickets", bg: "#F6F1E7", desc: "HMAC-signed tokens. Forged or duplicated scans are rejected before the database is even touched." },
   { icon: IconCertificate, title: "Real certificates", bg: "#F6F1E7", desc: "Auto-generated PDFs, each publicly verifiable by certificate ID — no fake screenshots." },

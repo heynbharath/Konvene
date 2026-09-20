@@ -2,6 +2,7 @@
   "name": "@konvene/web",
   "version": "0.1.0",
   "private": true,
+  "author": "Sunaina Mohapatra (ENG24CT0058)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

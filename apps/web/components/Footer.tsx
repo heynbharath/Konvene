@@ -49,6 +49,10 @@ export function Footer() {
           <span>© 2026 Konvene. Not a college project.</span>
           <span className="font-mono uppercase tracking-widest">Every ticket is real. Every scan is checked.</span>
         </div>
+        <div className="mt-4 text-center text-xs text-inkSoft">
+          Made by <span className="font-semibold text-ink">Sunaina Mohapatra</span>
+          <span className="font-mono"> · ENG24CT0058</span>
+        </div>
       </div>
     </footer>
   );

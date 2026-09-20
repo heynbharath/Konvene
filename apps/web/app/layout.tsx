@@ -19,6 +19,7 @@ const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", weigh
 export const metadata: Metadata = {
   title: "Konvene — Campus Events OS",
   description: "One platform for every event happening across your campus.",
+  authors: [{ name: "Sunaina Mohapatra" }],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

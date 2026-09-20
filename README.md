@@ -2,6 +2,8 @@
 
 **One platform for every event happening across your campus.**
 
+Made by **Sunaina Mohapatra** (ENG24CT0058)
+
 Konvene is the operating system for campus communities — clubs, departments, and student chapters run every event (hackathons, workshops, fests, conferences) through one connected platform instead of WhatsApp + Google Forms + Excel + a QR generator + Gmail + a paper attendance sheet.
 
 **Konvene does not process payments.** Every ticket type is free (Free/VIP/Volunteer/Speaker/etc. are access tiers with their own capacity, not price points). There is no payment gateway, checkout, or coupon system in this project.
