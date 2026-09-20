@@ -24,37 +24,33 @@ export default function VerifyPage() {
   }, [certId]);
 
   if (!result) {
-    return <div className="mx-auto h-48 max-w-md animate-pulse rounded-2xl bg-white/[0.03]" />;
+    return <div className="mx-auto h-48 max-w-md animate-pulse border-[1.5px] border-ink bg-paperAlt" />;
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mx-auto max-w-md text-center"
-    >
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mx-auto max-w-md text-center">
       {result.valid ? (
-        <div className="glass rounded-3xl border-emerald-500/20 p-10">
+        <div className="card bg-paper p-10">
           <div className="mb-4 flex justify-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 ring-1 ring-emerald-500/30">
-              <CheckCircle2 className="h-7 w-7 text-emerald-400" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-full border-[1.5px] border-ink bg-moss">
+              <CheckCircle2 className="h-7 w-7 text-paper" />
             </div>
           </div>
-          <h1 className="font-display text-xl font-bold text-emerald-300">Certificate Verified</h1>
-          <p className="mt-5 font-display text-2xl font-bold">{result.holderName}</p>
-          <p className="mt-1 text-white/60">participated in {result.eventTitle}</p>
-          <p className="text-sm text-white/40">organized by {result.club}</p>
-          <p className="mt-6 text-xs text-white/30">Certificate ID: {result.certId}</p>
+          <h1 className="font-display text-xl font-semibold italic text-moss">Certificate Verified</h1>
+          <p className="mt-5 font-display text-2xl font-semibold">{result.holderName}</p>
+          <p className="mt-1 text-inkSoft">participated in {result.eventTitle}</p>
+          <p className="text-sm text-inkSoft">organized by {result.club}</p>
+          <p className="mt-6 font-mono text-xs text-inkSoft">Certificate ID: {result.certId}</p>
         </div>
       ) : (
-        <div className="glass rounded-3xl border-red-500/20 p-10">
+        <div className="card bg-paper p-10">
           <div className="mb-4 flex justify-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500/10 ring-1 ring-red-500/30">
-              <XCircle className="h-7 w-7 text-red-400" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-full border-[1.5px] border-ink bg-berry">
+              <XCircle className="h-7 w-7 text-paper" />
             </div>
           </div>
-          <h1 className="font-display text-xl font-bold text-red-300">Certificate Not Found</h1>
-          <p className="mt-2 text-white/60">This certificate ID does not match any issued certificate.</p>
+          <h1 className="font-display text-xl font-semibold italic text-berry">Certificate Not Found</h1>
+          <p className="mt-2 text-inkSoft">This certificate ID does not match any issued certificate.</p>
         </div>
       )}
     </motion.div>

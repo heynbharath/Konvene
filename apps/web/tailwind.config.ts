@@ -6,45 +6,51 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          DEFAULT: "#7c5cff",
-          dark: "#5b3df0",
-          light: "#a78bfa",
+        paper: "#F6F1E7",
+        paperAlt: "#EEE6D6",
+        paperDeep: "#E4D9C2",
+        ink: "#15130F",
+        inkSoft: "#4A443B",
+        signal: {
+          DEFAULT: "#FF4A1F",
+          dark: "#D6350A",
         },
-        surface: "#08080d",
-        surfaceAlt: "#101018",
-        surfaceCard: "#131320",
+        cobalt: "#1F32E0",
+        acid: "#D6FF3F",
+        berry: "#D6336C",
+        moss: "#1F6D4C",
       },
       fontFamily: {
         display: ["var(--font-display)"],
         sans: ["var(--font-sans)"],
+        mono: ["var(--font-mono)"],
+      },
+      boxShadow: {
+        hard: "6px 6px 0 0 #15130F",
+        "hard-sm": "3px 3px 0 0 #15130F",
+        "hard-lg": "10px 10px 0 0 #15130F",
+        "hard-signal": "6px 6px 0 0 #FF4A1F",
       },
       backgroundImage: {
-        "grid-pattern":
-          "linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px)",
-        "radial-fade": "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124,92,255,0.25), transparent)",
+        "dot-grid": "radial-gradient(rgba(21,19,15,0.14) 1.5px, transparent 1.5px)",
+        noise: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
       },
       backgroundSize: {
-        grid: "48px 48px",
+        dots: "22px 22px",
       },
       animation: {
-        "gradient-x": "gradient-x 8s ease infinite",
-        float: "float 6s ease-in-out infinite",
-        "float-delayed": "float 8s ease-in-out infinite 2s",
-        "fade-up": "fade-up 0.6s ease-out forwards",
+        marquee: "marquee 22s linear infinite",
+        wiggle: "wiggle 4s ease-in-out infinite",
+        "spin-slow": "spin 14s linear infinite",
       },
       keyframes: {
-        "gradient-x": {
-          "0%, 100%": { backgroundPosition: "0% 50%" },
-          "50%": { backgroundPosition: "100% 50%" },
+        marquee: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
         },
-        float: {
-          "0%, 100%": { transform: "translateY(0px)" },
-          "50%": { transform: "translateY(-20px)" },
-        },
-        "fade-up": {
-          "0%": { opacity: "0", transform: "translateY(16px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
+        wiggle: {
+          "0%, 100%": { transform: "rotate(-2deg)" },
+          "50%": { transform: "rotate(2deg)" },
         },
       },
     },

@@ -44,15 +44,15 @@ export default function DiscoverPage() {
       <Hero />
 
       <section id="events" className="scroll-mt-24">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="font-display text-2xl font-bold">Happening now</h2>
+        <div className="mb-6 flex flex-col gap-4 border-b-[1.5px] border-ink pb-5 sm:flex-row sm:items-end sm:justify-between">
+          <h2 className="font-display text-3xl font-semibold italic">Happening now</h2>
           <div className="relative w-full sm:w-72">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-inkSoft" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search events…"
-              className="w-full rounded-full border border-white/10 bg-white/[0.03] py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand/50"
+              className="w-full border-[1.5px] border-ink bg-paper py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:bg-paperAlt"
             />
           </div>
         </div>
@@ -60,8 +60,8 @@ export default function DiscoverPage() {
         <div className="mb-8 flex flex-wrap gap-2">
           <button
             onClick={() => setCategory("")}
-            className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
-              category === "" ? "bg-white text-black" : "border border-white/10 bg-white/[0.03] text-white/60 hover:text-white"
+            className={`rounded-full border-[1.5px] border-ink px-3.5 py-1.5 font-mono text-xs font-semibold uppercase tracking-wide transition-colors ${
+              category === "" ? "bg-ink text-paper" : "bg-paper text-ink hover:bg-paperAlt"
             }`}
           >
             All
@@ -70,8 +70,8 @@ export default function DiscoverPage() {
             <button
               key={c}
               onClick={() => setCategory(c)}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
-                category === c ? "bg-white text-black" : "border border-white/10 bg-white/[0.03] text-white/60 hover:text-white"
+              className={`rounded-full border-[1.5px] border-ink px-3.5 py-1.5 font-mono text-xs font-semibold uppercase tracking-wide transition-colors ${
+                category === c ? "bg-ink text-paper" : "bg-paper text-ink hover:bg-paperAlt"
               }`}
             >
               {c}
@@ -80,17 +80,17 @@ export default function DiscoverPage() {
         </div>
 
         {loading ? (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-72 animate-pulse rounded-2xl border border-white/[0.06] bg-white/[0.02]" />
+              <div key={i} className="h-72 animate-pulse border-[1.5px] border-ink bg-paperAlt" />
             ))}
           </div>
         ) : events.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 py-20 text-center text-white/40">
+          <div className="border-[1.5px] border-dashed border-ink py-20 text-center font-display text-lg italic text-inkSoft">
             No published events match yet — check back soon.
           </div>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {events.map((e, i) => (
               <EventCard
                 key={e.id}

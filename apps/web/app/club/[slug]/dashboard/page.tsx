@@ -100,7 +100,7 @@ export default function ClubDashboardPage() {
     refresh();
   }
 
-  if (!club) return <p className="text-white/50">Loading…</p>;
+  if (!club) return <p className="text-inkSoft">Loading…</p>;
 
   const selectedEvent = club.events.find((e) => e.id === eventId);
 
@@ -112,25 +112,27 @@ export default function ClubDashboardPage() {
 
   return (
     <div>
-      <h1 className="mb-1 font-display text-2xl font-bold">{club.name} <span className="text-white/30">/ Dashboard</span></h1>
+      <h1 className="mb-1 font-display text-3xl font-semibold italic">
+        {club.name} <span className="not-italic text-inkSoft">/ Dashboard</span>
+      </h1>
       <div className="mb-8 mt-4 flex flex-wrap items-center gap-3">
         <select
           value={eventId}
           onChange={(e) => setEventId(e.target.value)}
-          className="rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm outline-none focus:border-brand/50"
+          className="border-[1.5px] border-ink bg-paper px-3.5 py-2.5 text-sm outline-none focus:bg-paperAlt"
         >
           {club.events.map((e) => <option key={e.id} value={e.id}>{e.title}</option>)}
         </select>
         {selectedEvent && <StatusBadge status={selectedEvent.status} />}
         {selectedEvent?.status === "DRAFT" && (
-          <button onClick={submitForApproval} className="btn-primary rounded-full px-4 py-2 text-sm font-medium text-white">
+          <button onClick={submitForApproval} className="btn-signal rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wide">
             Submit for approval
           </button>
         )}
       </div>
 
       {stats && (
-        <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCard label="Capacity" value={stats.capacity} />
           <StatCard label="Registered" value={stats.registered} />
           <StatCard label="Checked in" value={stats.checkedIn} highlight />
@@ -139,38 +141,38 @@ export default function ClubDashboardPage() {
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="glass rounded-2xl p-6">
-          <h2 className="mb-4 font-display text-lg font-bold">QR Check-in Scanner</h2>
+        <div className="card p-6">
+          <h2 className="mb-4 font-display text-xl font-semibold italic">QR Check-in Scanner</h2>
           {!scanning ? (
-            <button onClick={() => setScanning(true)} className="btn-primary rounded-full px-5 py-2.5 text-sm font-semibold text-white">
+            <button onClick={() => setScanning(true)} className="btn-signal rounded-full px-5 py-2.5 text-sm font-bold uppercase tracking-wide">
               Start scanning
             </button>
           ) : (
             <>
               <QrScanner active={scanning} onScan={handleScan} />
-              <button onClick={() => setScanning(false)} className="mt-3 text-sm text-white/50 hover:underline">
+              <button onClick={() => setScanning(false)} className="mt-3 text-sm text-inkSoft underline">
                 Stop
               </button>
             </>
           )}
           {scanResult && (
-            <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <div className="mt-5 border-[1.5px] border-ink bg-paperAlt p-4">
               <StatusBadge status={scanResult.result ?? "INVALID"} />
               {scanResult.name && <p className="mt-2 font-semibold">{scanResult.name}</p>}
-              {scanResult.usn && <p className="text-sm text-white/50">{scanResult.usn}</p>}
+              {scanResult.usn && <p className="text-sm text-inkSoft">{scanResult.usn}</p>}
               {scanResult.routedToFaculty && (
-                <p className="mt-1 text-xs text-white/40">Attendance routed to subject faculty for approval.</p>
+                <p className="mt-1 font-mono text-xs text-inkSoft">Attendance routed to subject faculty for approval.</p>
               )}
             </div>
           )}
 
-          <div className="mt-6 border-t border-white/[0.06] pt-5">
-            <h3 className="mb-2 text-sm font-semibold text-white/70">Manual check-in (lost/unreadable QR)</h3>
+          <div className="mt-6 border-t-[1.5px] border-dashed border-ink/30 pt-5">
+            <h3 className="mb-2 font-mono text-xs font-semibold uppercase tracking-wide text-inkSoft">Manual check-in (lost/unreadable QR)</h3>
             <input
               value={searchQuery}
               onChange={(e) => runSearch(e.target.value)}
               placeholder="Search by name or USN…"
-              className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm outline-none focus:border-brand/50"
+              className="w-full border-[1.5px] border-ink bg-paper px-3.5 py-2.5 text-sm outline-none focus:bg-paperAlt"
             />
             {searchResults.length > 0 && (
               <div className="mt-2 space-y-1">
@@ -179,9 +181,9 @@ export default function ClubDashboardPage() {
                     key={r.id}
                     onClick={() => manualCheckIn(r.id)}
                     disabled={r.ticket?.status === "CHECKED_IN"}
-                    className="flex w-full items-center justify-between rounded-lg bg-white/[0.03] px-3.5 py-2.5 text-left text-sm hover:bg-white/[0.07] disabled:opacity-40"
+                    className="flex w-full items-center justify-between border-[1.5px] border-ink bg-paper px-3.5 py-2.5 text-left text-sm hover:bg-paperAlt disabled:opacity-40"
                   >
-                    <span>{r.user.name} <span className="text-white/40">· {r.user.usn ?? "—"}</span></span>
+                    <span>{r.user.name} <span className="text-inkSoft">· {r.user.usn ?? "—"}</span></span>
                     <StatusBadge status={r.ticket?.status ?? "ISSUED"} />
                   </button>
                 ))}
@@ -190,14 +192,14 @@ export default function ClubDashboardPage() {
           </div>
         </div>
 
-        <div className="glass rounded-2xl p-6">
-          <h2 className="mb-4 font-display text-lg font-bold">Registrations</h2>
+        <div className="card p-6">
+          <h2 className="mb-4 font-display text-xl font-semibold italic">Registrations</h2>
           <div className="max-h-96 space-y-1 overflow-y-auto">
             {registrations.map((r) => (
-              <div key={r.id} className="flex items-center justify-between border-b border-white/[0.04] py-2.5 text-sm">
+              <div key={r.id} className="flex items-center justify-between border-b-[1.5px] border-dashed border-ink/20 py-2.5 text-sm">
                 <div>
                   <div>{r.user.name}</div>
-                  <div className="text-white/40">{r.user.usn ?? "—"} · {r.ticketType.name}</div>
+                  <div className="text-inkSoft">{r.user.usn ?? "—"} · {r.ticketType.name}</div>
                 </div>
                 <StatusBadge status={r.ticket?.status ?? r.status} />
               </div>
@@ -211,9 +213,9 @@ export default function ClubDashboardPage() {
 
 function StatCard({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
   return (
-    <div className={`rounded-2xl border p-4 ${highlight ? "border-brand/30 bg-brand/10" : "glass"}`}>
-      <div className="font-display text-2xl font-bold">{value}</div>
-      <div className="text-xs text-white/50">{label}</div>
+    <div className={`border-[1.5px] border-ink p-4 ${highlight ? "bg-acid" : "bg-paperAlt"}`}>
+      <div className="font-display text-2xl font-semibold">{value}</div>
+      <div className="font-mono text-[10px] uppercase tracking-wide text-inkSoft">{label}</div>
     </div>
   );
 }

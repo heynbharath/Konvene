@@ -5,23 +5,27 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const CATEGORY_GRADIENTS: Record<string, string> = {
-  WORKSHOP: "from-violet-500 via-fuchsia-500 to-pink-500",
-  HACKATHON: "from-indigo-500 via-purple-500 to-pink-500",
-  CONFERENCE: "from-blue-500 via-cyan-500 to-teal-400",
-  TALK: "from-emerald-500 via-teal-500 to-cyan-400",
-  SEMINAR: "from-sky-500 via-blue-500 to-indigo-500",
-  SPORTS: "from-orange-500 via-amber-500 to-yellow-400",
-  CULTURAL: "from-pink-500 via-rose-500 to-orange-400",
-  TECHNICAL: "from-indigo-500 via-blue-500 to-cyan-400",
-  MUSIC: "from-purple-500 via-violet-500 to-indigo-400",
-  DANCE: "from-fuchsia-500 via-pink-500 to-rose-400",
-  FEST: "from-amber-500 via-orange-500 to-red-500",
-  BOOTCAMP: "from-teal-500 via-emerald-500 to-lime-400",
-  PLACEMENT: "from-slate-500 via-gray-500 to-zinc-400",
-  COMPETITION: "from-red-500 via-orange-500 to-amber-400",
+/**
+ * A curated, bespoke palette — deliberately not a generated gradient scale.
+ * Each category gets one intentional flat color, assigned by hand.
+ */
+export const CATEGORY_STYLES: Record<string, { bg: string; fg: string }> = {
+  WORKSHOP: { bg: "#1F32E0", fg: "#F6F1E7" }, // cobalt
+  HACKATHON: { bg: "#FF4A1F", fg: "#F6F1E7" }, // signal
+  CONFERENCE: { bg: "#0E9594", fg: "#F6F1E7" }, // teal
+  TALK: { bg: "#F2B705", fg: "#15130F" }, // mustard
+  SEMINAR: { bg: "#6C3EA6", fg: "#F6F1E7" }, // plum
+  SPORTS: { bg: "#1F6D4C", fg: "#F6F1E7" }, // moss
+  CULTURAL: { bg: "#D6336C", fg: "#F6F1E7" }, // berry
+  TECHNICAL: { bg: "#1F32E0", fg: "#F6F1E7" }, // cobalt
+  MUSIC: { bg: "#6C3EA6", fg: "#F6F1E7" }, // plum
+  DANCE: { bg: "#D6336C", fg: "#F6F1E7" }, // berry
+  FEST: { bg: "#F2B705", fg: "#15130F" }, // mustard
+  BOOTCAMP: { bg: "#0E9594", fg: "#F6F1E7" }, // teal
+  PLACEMENT: { bg: "#15130F", fg: "#F6F1E7" }, // ink
+  COMPETITION: { bg: "#FF4A1F", fg: "#F6F1E7" }, // signal
 };
 
-export function categoryGradient(category: string): string {
-  return CATEGORY_GRADIENTS[category] ?? "from-brand via-purple-500 to-fuchsia-500";
+export function categoryStyle(category: string): { bg: string; fg: string } {
+  return CATEGORY_STYLES[category] ?? { bg: "#D6FF3F", fg: "#15130F" };
 }

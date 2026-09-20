@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Zap } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 
@@ -12,6 +11,10 @@ interface Stats {
   registrations: number;
   certificates: number;
 }
+
+const TICKER_WORDS = [
+  "HACKATHONS", "WORKSHOPS", "FESTS", "CONFERENCES", "COMPETITIONS", "BOOTCAMPS", "TALKS", "PLACEMENTS",
+];
 
 export function Hero() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -30,53 +33,66 @@ export function Hero() {
     : [];
 
   return (
-    <section className="relative isolate mb-16 overflow-hidden">
-      {/* Ambient gradient blobs */}
-      <div className="pointer-events-none absolute -top-24 left-1/2 h-[420px] w-[720px] -translate-x-1/2 animate-float rounded-full bg-brand/20 blur-[100px]" />
-      <div className="pointer-events-none absolute -top-10 right-0 h-[300px] w-[300px] animate-float-delayed rounded-full bg-fuchsia-500/15 blur-[90px]" />
+    <section className="relative mb-16">
+      {/* Marquee ticker */}
+      <div className="mb-10 overflow-hidden border-y-[1.5px] border-ink bg-ink py-2.5">
+        <div className="marquee-track flex w-max gap-8 whitespace-nowrap">
+          {[...TICKER_WORDS, ...TICKER_WORDS, ...TICKER_WORDS].map((w, i) => (
+            <span key={i} className="flex items-center gap-8 font-mono text-xs font-medium uppercase tracking-[0.2em] text-paper">
+              {w} <span className="text-signal">✦</span>
+            </span>
+          ))}
+        </div>
+      </div>
 
-      <div className="relative pt-10 text-center sm:pt-16">
+      <div className="relative px-2 text-center sm:px-0">
         <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-1.5 text-xs font-medium text-white/70"
+          initial={{ opacity: 0, rotate: -8, scale: 0.8 }}
+          animate={{ opacity: 1, rotate: -6, scale: 1 }}
+          transition={{ type: "spring", stiffness: 200, damping: 12 }}
+          className="stamp mx-auto mb-6 inline-flex items-center gap-2 rounded-full border-[1.5px] border-ink bg-acid px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-ink"
         >
-          <Zap className="h-3.5 w-3.5 text-brand-light" fill="currentColor" />
-          The operating system for campus communities
+          Not another event app
         </motion.div>
 
         <motion.h1
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mx-auto max-w-3xl text-4xl font-bold leading-[1.1] tracking-tight sm:text-6xl"
+          className="mx-auto max-w-4xl text-[2.75rem] font-medium leading-[1.02] tracking-tight sm:text-7xl"
         >
-          Every campus event,
+          Campus events,
           <br />
-          <span className="text-gradient">one platform to run it.</span>
+          run like a{" "}
+          <span className="relative inline-block italic text-signal">
+            real product.
+            <svg className="absolute -bottom-2 left-0 w-full" height="12" viewBox="0 0 200 12" preserveAspectRatio="none">
+              <path d="M0,8 Q50,0 100,8 T200,8" stroke="#15130F" strokeWidth="3" fill="none" />
+            </svg>
+          </span>
         </motion.h1>
 
         <motion.p
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mx-auto mt-5 max-w-xl text-balance text-base text-white/55 sm:text-lg"
+          className="mx-auto mt-6 max-w-xl text-base text-inkSoft sm:text-lg"
         >
-          Registration, QR check-in, and faculty-verified attendance — replacing WhatsApp, Google Forms,
-          and a paper sign-in sheet with something that actually works.
+          Registration, QR check-in, and faculty-verified attendance —
+          replacing WhatsApp threads, Google Forms, and a clipboard sign-in sheet.
         </motion.p>
 
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="mt-8 flex items-center justify-center gap-3"
+          className="mt-9 flex items-center justify-center gap-4"
         >
-          <a href="#events" className="btn-primary flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white">
-            Explore events <ArrowRight className="h-4 w-4" />
+          <a href="#events" className="btn-signal rounded-full px-7 py-3.5 text-sm font-bold uppercase tracking-wide">
+            Explore events
           </a>
-          <Link href="/signup" className="btn-ghost rounded-full px-6 py-3 text-sm font-semibold text-white">
-            Create your account
+          <Link href="/signup" className="btn-outline rounded-full px-7 py-3.5 text-sm font-bold uppercase tracking-wide">
+            Create account
           </Link>
         </motion.div>
 
@@ -84,13 +100,16 @@ export function Hero() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mx-auto mt-14 grid max-w-2xl grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.06] sm:grid-cols-4"
+            transition={{ delay: 0.45 }}
+            className="mx-auto mt-16 grid max-w-3xl grid-cols-2 border-[1.5px] border-ink sm:grid-cols-4"
           >
-            {statItems.map((s) => (
-              <div key={s.label} className="bg-surface/80 px-4 py-5 backdrop-blur">
-                <div className="font-display text-2xl font-bold text-white sm:text-3xl">{s.value}</div>
-                <div className="mt-1 text-xs text-white/45">{s.label}</div>
+            {statItems.map((s, i) => (
+              <div
+                key={s.label}
+                className={`px-4 py-6 ${i % 2 === 0 ? "bg-paper" : "bg-paperAlt"} ${i > 0 ? "border-l-[1.5px] border-ink" : ""} ${i >= 2 ? "border-t-[1.5px] sm:border-t-0" : ""}`}
+              >
+                <div className="font-display text-3xl font-semibold sm:text-4xl">{s.value}</div>
+                <div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-inkSoft">{s.label}</div>
               </div>
             ))}
           </motion.div>

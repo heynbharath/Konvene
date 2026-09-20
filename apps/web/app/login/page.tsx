@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 export default function LoginPage() {
@@ -30,54 +30,52 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative mx-auto flex min-h-[70vh] max-w-sm flex-col items-center justify-center">
-      <div className="pointer-events-none absolute -top-20 h-72 w-72 animate-float rounded-full bg-brand/20 blur-[90px]" />
-
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="relative w-full">
-        <div className="mb-8 flex flex-col items-center">
-          <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-fuchsia-500 shadow-lg shadow-brand/30">
-            <Sparkles className="h-5 w-5 text-white" />
-          </div>
-          <h1 className="font-display text-2xl font-bold">Welcome back</h1>
-          <p className="mt-1 text-sm text-white/45">Log in to Konvene</p>
+    <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col items-center justify-center">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <span className="stamp mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full border-[1.5px] border-ink bg-signal font-display text-xl font-semibold text-paper">
+            K
+          </span>
+          <h1 className="font-display text-3xl font-semibold italic">Welcome back</h1>
+          <p className="mt-1 text-sm text-inkSoft">Log in to Konvene</p>
         </div>
 
-        <form onSubmit={onSubmit} className="glass space-y-4 rounded-2xl p-6">
+        <form onSubmit={onSubmit} className="card space-y-4 p-6">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-white/50">Email</label>
+            <label className="mb-1.5 block font-mono text-[11px] font-semibold uppercase tracking-wide text-inkSoft">Email</label>
             <input
               type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-brand/50"
+              className="w-full border-[1.5px] border-ink bg-paper px-3.5 py-2.5 text-sm outline-none focus:bg-paperAlt"
               placeholder="you@college.edu"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-white/50">Password</label>
+            <label className="mb-1.5 block font-mono text-[11px] font-semibold uppercase tracking-wide text-inkSoft">Password</label>
             <input
               type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-brand/50"
+              className="w-full border-[1.5px] border-ink bg-paper px-3.5 py-2.5 text-sm outline-none focus:bg-paperAlt"
               placeholder="••••••••"
             />
           </div>
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p className="text-sm font-medium text-berry">{error}</p>}
           <button
             disabled={busy}
-            className="btn-primary flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            className="btn-signal flex w-full items-center justify-center gap-2 py-3 text-sm font-bold uppercase tracking-wide disabled:opacity-50"
           >
             {busy ? "Logging in…" : "Log in"} {!busy && <ArrowRight className="h-4 w-4" />}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-white/40">
+        <p className="mt-6 text-center text-sm text-inkSoft">
           New here?{" "}
-          <Link href="/signup" className="text-brand-light hover:underline">
+          <Link href="/signup" className="font-semibold text-ink underline decoration-signal decoration-2 underline-offset-2">
             Create an account
           </Link>
         </p>
 
-        <div className="mt-6 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-xs text-white/40">
-          <p className="mb-1.5 font-medium text-white/60">Demo accounts</p>
-          <p>admin@konvene.dev · faculty@konvene.dev · clubhead@konvene.dev · student1@konvene.dev</p>
+        <div className="mt-6 border-[1.5px] border-dashed border-ink/40 bg-paperAlt p-4 font-mono text-[11px] text-inkSoft">
+          <p className="mb-1.5 font-bold uppercase tracking-wide text-ink">Demo accounts</p>
+          <p>admin · faculty · clubhead · student1 · student2 @konvene.dev</p>
           <p className="mt-1">Password: password123</p>
         </div>
       </motion.div>
