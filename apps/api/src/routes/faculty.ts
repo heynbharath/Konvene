@@ -17,7 +17,15 @@ facultyRouter.get("/pending-attendance", requireAuth, async (req: AuthedRequest,
               ticket: {
                 include: {
                   registration: {
-                    include: { user: { include: { studentProfile: { include: { section: true } } } }, event: true },
+                    include: {
+                      user: {
+                        select: {
+                          id: true, name: true, usn: true, email: true,
+                          studentProfile: { include: { section: true } },
+                        },
+                      },
+                      event: true,
+                    },
                   },
                 },
               },

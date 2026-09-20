@@ -10,7 +10,7 @@ import { QrScanner } from "@/components/QrScanner";
 interface ClubDetail {
   id: string;
   name: string;
-  events: { id: string; title: string; slug: string }[];
+  events: { id: string; title: string; slug: string; status: string }[];
 }
 
 interface Stats {
@@ -28,6 +28,12 @@ interface RegistrationRow {
   ticket: { status: string } | null;
 }
 
+interface SearchResultRow {
+  id: string;
+  user: { name: string; usn: string | null };
+  ticket: { status: string } | null;
+}
+
 export default function ClubDashboardPage() {
   const { slug } = useParams<{ slug: string }>();
   const { token } = useAuth();
@@ -37,13 +43,16 @@ export default function ClubDashboardPage() {
   const [registrations, setRegistrations] = useState<RegistrationRow[]>([]);
   const [scanning, setScanning] = useState(false);
   const [scanResult, setScanResult] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResultRow[]>([]);
 
   useEffect(() => {
-    api<ClubDetail>(`/clubs/${slug}`).then((c) => {
+    if (!token) return;
+    api<ClubDetail>(`/clubs/${slug}`, { token }).then((c) => {
       setClub(c);
       if (c.events[0]) setEventId(c.events[0].id);
     });
-  }, [slug]);
+  }, [slug, token]);
 
   const refresh = useCallback(() => {
     if (!eventId || !token) return;
@@ -68,18 +77,57 @@ export default function ClubDashboardPage() {
     refresh();
   }
 
+  async function runSearch(q: string) {
+    setSearchQuery(q);
+    if (!token || !eventId || q.trim().length < 2) return setSearchResults([]);
+    const results = await api<SearchResultRow[]>(
+      `/checkin/search?eventId=${eventId}&q=${encodeURIComponent(q)}`,
+      { token }
+    );
+    setSearchResults(results);
+  }
+
+  async function manualCheckIn(registrationId: string) {
+    if (!token) return;
+    try {
+      const res = await api("/checkin/manual", { method: "POST", token, body: { registrationId } });
+      setScanResult(res);
+    } catch (err) {
+      setScanResult(err instanceof ApiError ? err.data ?? { result: "INVALID" } : { result: "INVALID" });
+    }
+    setSearchResults([]);
+    setSearchQuery("");
+    refresh();
+  }
+
   if (!club) return <p className="text-white/50">Loading…</p>;
+
+  const selectedEvent = club.events.find((e) => e.id === eventId);
+
+  async function submitForApproval() {
+    if (!token || !eventId) return;
+    await api(`/events/${eventId}/submit-for-approval`, { method: "POST", token });
+    api<ClubDetail>(`/clubs/${slug}`, { token }).then(setClub);
+  }
 
   return (
     <div>
       <h1 className="mb-1 text-2xl font-bold">{club.name} — Dashboard</h1>
-      <select
-        value={eventId}
-        onChange={(e) => setEventId(e.target.value)}
-        className="mb-6 rounded-lg border border-white/10 bg-surfaceAlt px-3 py-2"
-      >
-        {club.events.map((e) => <option key={e.id} value={e.id}>{e.title}</option>)}
-      </select>
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <select
+          value={eventId}
+          onChange={(e) => setEventId(e.target.value)}
+          className="rounded-lg border border-white/10 bg-surfaceAlt px-3 py-2"
+        >
+          {club.events.map((e) => <option key={e.id} value={e.id}>{e.title}</option>)}
+        </select>
+        {selectedEvent && <StatusBadge status={selectedEvent.status} />}
+        {selectedEvent?.status === "DRAFT" && (
+          <button onClick={submitForApproval} className="rounded-md bg-brand px-3 py-1.5 text-sm hover:bg-brand-dark">
+            Submit for approval
+          </button>
+        )}
+      </div>
 
       {stats && (
         <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -115,6 +163,31 @@ export default function ClubDashboardPage() {
               )}
             </div>
           )}
+
+          <div className="mt-6 border-t border-white/10 pt-5">
+            <h3 className="mb-2 text-sm font-semibold text-white/70">Manual check-in (lost/unreadable QR)</h3>
+            <input
+              value={searchQuery}
+              onChange={(e) => runSearch(e.target.value)}
+              placeholder="Search by name or USN…"
+              className="w-full rounded-lg border border-white/10 bg-surface px-3 py-2 text-sm"
+            />
+            {searchResults.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {searchResults.map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() => manualCheckIn(r.id)}
+                    disabled={r.ticket?.status === "CHECKED_IN"}
+                    className="flex w-full items-center justify-between rounded-md bg-white/5 px-3 py-2 text-left text-sm hover:bg-white/10 disabled:opacity-40"
+                  >
+                    <span>{r.user.name} <span className="text-white/40">· {r.user.usn ?? "—"}</span></span>
+                    <StatusBadge status={r.ticket?.status ?? "ISSUED"} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="rounded-xl border border-white/10 bg-surfaceAlt p-6">

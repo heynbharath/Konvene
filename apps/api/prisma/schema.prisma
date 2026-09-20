@@ -187,19 +187,21 @@ model EventForm {
   schemaJson String // JSON-encoded array of field definitions
 }
 
+// TicketType is a free allocation pool (Free / VIP / Volunteer / Speaker / Guest /
+// Judge / Sponsor / Media / Workshop) — Konvene does not process payments, so
+// every ticket type is free; the name only distinguishes access tier/capacity.
 model TicketType {
   id            String         @id @default(cuid())
   event         Event          @relation(fields: [eventId], references: [id])
   eventId       String
-  name          String         // Free / Paid / VIP / Volunteer / Speaker / Guest / Judge / Sponsor / Media / Workshop
-  price         Int            @default(0) // in paise/cents; 0 = free
+  name          String
   capacity      Int
   registrations Registration[]
 }
 
 // ---------- Registration & Ticketing ----------
 // RegistrationStatus: CONFIRMED | WAITLISTED | CANCELLED
-// TicketStatus: PENDING_PAYMENT | ISSUED | CHECKED_IN | CANCELLED | BLACKLISTED
+// TicketStatus: ISSUED | CHECKED_IN | CANCELLED | BLACKLISTED
 
 model Registration {
   id               String     @id @default(cuid())
@@ -213,8 +215,7 @@ model Registration {
   status           String     @default("CONFIRMED")
   createdAt        DateTime   @default(now())
 
-  ticket  Ticket?
-  payment Payment?
+  ticket Ticket?
 
   @@unique([eventId, userId])
 }
@@ -296,21 +297,6 @@ model Certificate {
   attendanceId String?     @unique
   pdfUrl       String
   issuedAt     DateTime    @default(now())
-}
-
-// ---------- Payments ----------
-// PaymentStatus: PENDING | PAID | FAILED | REFUNDED
-
-model Payment {
-  id                String    @id @default(cuid())
-  registration      Registration @relation(fields: [registrationId], references: [id])
-  registrationId    String    @unique
-  provider          String    // razorpay
-  providerOrderId   String?
-  amount            Int
-  status            String    @default("PENDING")
-  webhookVerifiedAt DateTime?
-  createdAt         DateTime  @default(now())
 }
 
 // ---------- Comms & audit ----------

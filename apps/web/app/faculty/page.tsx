@@ -4,6 +4,15 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
 
+interface PendingEventRow {
+  id: string;
+  title: string;
+  slug: string;
+  venue: string;
+  startAt: string;
+  club: { name: string };
+}
+
 interface PendingRow {
   id: string;
   status: string;
@@ -20,16 +29,31 @@ interface PendingRow {
 }
 
 export default function FacultyPage() {
-  const { token, user } = useAuth();
+  const { token, user, hasRole } = useAuth();
   const [rows, setRows] = useState<PendingRow[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [pendingEvents, setPendingEvents] = useState<PendingEventRow[]>([]);
 
   function refresh() {
     if (!token) return;
     api<PendingRow[]>("/faculty/pending-attendance", { token }).then(setRows);
+    if (hasRole("FACULTY_COORDINATOR")) {
+      api<PendingEventRow[]>("/events/pending-approval/mine", { token }).then(setPendingEvents);
+    }
   }
 
   useEffect(refresh, [token]);
+
+  async function decideEvent(id: string, decision: "approve" | "reject") {
+    if (!token) return;
+    if (decision === "reject") {
+      const reason = prompt("Reason for rejecting this event?") ?? "Not specified";
+      await api(`/events/${id}/reject`, { method: "POST", token, body: { reason } });
+    } else {
+      await api(`/events/${id}/approve`, { method: "POST", token });
+    }
+    refresh();
+  }
 
   function toggle(id: string) {
     setSelected((s) => {
@@ -57,6 +81,39 @@ export default function FacultyPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
+      {hasRole("FACULTY_COORDINATOR") && (
+        <section className="mb-12">
+          <h1 className="mb-2 text-2xl font-bold">Events Awaiting Your Approval</h1>
+          <p className="mb-6 text-sm text-white/50">
+            As Faculty Coordinator, your approval publishes an event for your club.
+          </p>
+          {pendingEvents.length === 0 ? (
+            <p className="text-white/50">No events pending approval.</p>
+          ) : (
+            <div className="space-y-2">
+              {pendingEvents.map((e) => (
+                <div key={e.id} className="flex items-center justify-between rounded-lg border border-white/10 bg-surfaceAlt p-4">
+                  <div>
+                    <div className="font-medium">{e.title}</div>
+                    <div className="text-sm text-white/50">
+                      {e.club.name} · {new Date(e.startAt).toLocaleString()} · {e.venue}
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <button onClick={() => decideEvent(e.id, "approve")} className="rounded-md bg-brand px-3 py-1.5 text-sm hover:bg-brand-dark">
+                      Approve
+                    </button>
+                    <button onClick={() => decideEvent(e.id, "reject")} className="text-sm text-red-400 hover:underline">
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
       <h1 className="mb-2 text-2xl font-bold">Pending Attendance</h1>
       <p className="mb-6 text-sm text-white/50">
         Students who checked in to an event linked to your subject. Approving here credits their official attendance.

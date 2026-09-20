@@ -13,7 +13,7 @@ interface EventCard {
   startAt: string;
   capacity: number;
   club: { name: string; logoUrl?: string };
-  ticketTypes: { price: number }[];
+  ticketTypes: { name: string }[];
   _count: { registrations: number };
 }
 

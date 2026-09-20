@@ -134,7 +134,6 @@ CREATE TABLE "TicketType" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "eventId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "price" INTEGER NOT NULL DEFAULT 0,
     "capacity" INTEGER NOT NULL,
     CONSTRAINT "TicketType_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
@@ -224,19 +223,6 @@ CREATE TABLE "Certificate" (
 );
 
 -- CreateTable
-CREATE TABLE "Payment" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "registrationId" TEXT NOT NULL,
-    "provider" TEXT NOT NULL,
-    "providerOrderId" TEXT,
-    "amount" INTEGER NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'PENDING',
-    "webhookVerifiedAt" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "Payment_registrationId_fkey" FOREIGN KEY ("registrationId") REFERENCES "Registration" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
--- CreateTable
 CREATE TABLE "Notification" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "userId" TEXT NOT NULL,
@@ -307,6 +293,3 @@ CREATE UNIQUE INDEX "Certificate_certId_key" ON "Certificate"("certId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Certificate_attendanceId_key" ON "Certificate"("attendanceId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Payment_registrationId_key" ON "Payment"("registrationId");

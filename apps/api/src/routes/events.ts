@@ -56,7 +56,7 @@ const createEventSchema = z.object({
   requiresFacultyAttendance: z.boolean().optional(),
   linkedSubjectId: z.string().optional(),
   ticketTypes: z
-    .array(z.object({ name: z.string(), price: z.number().int().min(0), capacity: z.number().int().positive() }))
+    .array(z.object({ name: z.string(), capacity: z.number().int().positive() }))
     .min(1),
   formFields: z
     .array(
@@ -96,14 +96,95 @@ eventsRouter.post("/", requireAuth, loadRoles, async (req: AuthedRequest, res) =
   res.status(201).json(event);
 });
 
-eventsRouter.post("/:id/publish", requireAuth, loadRoles, async (req: AuthedRequest, res) => {
+/** Club head sends a DRAFT event to their Faculty Coordinator for approval. */
+eventsRouter.post("/:id/submit-for-approval", requireAuth, loadRoles, async (req: AuthedRequest, res) => {
   const event = await prisma.event.findUnique({ where: { id: req.params.id } });
   if (!event) return res.status(404).json({ error: "Event not found" });
   if (!hasScopedRole(req.roles, "CLUB_HEAD", "CLUB", event.clubId)) {
     return res.status(403).json({ error: "Forbidden" });
   }
-  const updated = await prisma.event.update({ where: { id: event.id }, data: { status: "PUBLISHED" } });
+  if (event.status !== "DRAFT") return res.status(409).json({ error: `Cannot submit an event in status ${event.status}` });
+
+  const updated = await prisma.event.update({ where: { id: event.id }, data: { status: "PENDING_APPROVAL" } });
+  await prisma.auditLog.create({
+    data: { actorUserId: req.userId, action: "EVENT_SUBMITTED_FOR_APPROVAL", targetType: "Event", targetId: event.id },
+  });
   res.json(updated);
+});
+
+/** Faculty Coordinator (scoped to the club) or Admin approves a pending event, publishing it. */
+eventsRouter.post("/:id/approve", requireAuth, loadRoles, async (req: AuthedRequest, res) => {
+  const event = await prisma.event.findUnique({ where: { id: req.params.id } });
+  if (!event) return res.status(404).json({ error: "Event not found" });
+  if (!hasScopedRole(req.roles, "FACULTY_COORDINATOR", "CLUB", event.clubId)) {
+    return res.status(403).json({ error: "Only this club's Faculty Coordinator (or an Admin) can approve events" });
+  }
+  if (event.status !== "PENDING_APPROVAL") {
+    return res.status(409).json({ error: `Cannot approve an event in status ${event.status}` });
+  }
+
+  const updated = await prisma.event.update({ where: { id: event.id }, data: { status: "PUBLISHED" } });
+  await prisma.auditLog.create({
+    data: { actorUserId: req.userId, action: "EVENT_APPROVED", targetType: "Event", targetId: event.id },
+  });
+  res.json(updated);
+});
+
+/** Faculty Coordinator rejects a pending event, sending it back to the club head with a reason. */
+eventsRouter.post("/:id/reject", requireAuth, loadRoles, async (req: AuthedRequest, res) => {
+  const parsed = z.object({ reason: z.string().min(2) }).safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "reason is required" });
+
+  const event = await prisma.event.findUnique({ where: { id: req.params.id } });
+  if (!event) return res.status(404).json({ error: "Event not found" });
+  if (!hasScopedRole(req.roles, "FACULTY_COORDINATOR", "CLUB", event.clubId)) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+  if (event.status !== "PENDING_APPROVAL") {
+    return res.status(409).json({ error: `Cannot reject an event in status ${event.status}` });
+  }
+
+  const updated = await prisma.event.update({ where: { id: event.id }, data: { status: "REJECTED" } });
+  await prisma.auditLog.create({
+    data: {
+      actorUserId: req.userId,
+      action: "EVENT_REJECTED",
+      targetType: "Event",
+      targetId: event.id,
+      afterJson: JSON.stringify({ reason: parsed.data.reason }),
+    },
+  });
+  res.json(updated);
+});
+
+/** Lets a club head move a REJECTED event back to DRAFT to edit and resubmit. */
+eventsRouter.post("/:id/revise", requireAuth, loadRoles, async (req: AuthedRequest, res) => {
+  const event = await prisma.event.findUnique({ where: { id: req.params.id } });
+  if (!event) return res.status(404).json({ error: "Event not found" });
+  if (!hasScopedRole(req.roles, "CLUB_HEAD", "CLUB", event.clubId)) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+  if (event.status !== "REJECTED") return res.status(409).json({ error: "Only rejected events can be revised" });
+
+  const updated = await prisma.event.update({ where: { id: event.id }, data: { status: "DRAFT" } });
+  res.json(updated);
+});
+
+/** Events awaiting this Faculty Coordinator's decision, across all clubs they cover. */
+eventsRouter.get("/pending-approval/mine", requireAuth, loadRoles, async (req: AuthedRequest, res) => {
+  const coordinatedClubIds = (req.roles ?? [])
+    .filter((r) => r.role === "FACULTY_COORDINATOR" && r.scopeType === "CLUB" && r.scopeId)
+    .map((r) => r.scopeId as string);
+
+  const isAdmin = req.roles?.some((r) => r.role === "ADMIN" || r.role === "SUPER_ADMIN");
+  if (!isAdmin && coordinatedClubIds.length === 0) return res.json([]);
+
+  const events = await prisma.event.findMany({
+    where: { status: "PENDING_APPROVAL", ...(isAdmin ? {} : { clubId: { in: coordinatedClubIds } }) },
+    include: { club: true },
+    orderBy: { createdAt: "asc" },
+  });
+  res.json(events);
 });
 
 eventsRouter.get("/:id/registrations", requireAuth, loadRoles, async (req: AuthedRequest, res) => {
@@ -114,7 +195,11 @@ eventsRouter.get("/:id/registrations", requireAuth, loadRoles, async (req: Authe
   }
   const registrations = await prisma.registration.findMany({
     where: { eventId: event.id },
-    include: { user: true, ticketType: true, ticket: true },
+    include: {
+      user: { select: { id: true, name: true, usn: true, email: true } },
+      ticketType: true,
+      ticket: true,
+    },
     orderBy: { createdAt: "desc" },
   });
   res.json(registrations);

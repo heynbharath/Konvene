@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { AuthedRequest, requireAuth, loadRoles, requireRole } from "../lib/rbac";
+import { AuthedRequest, requireAuth, loadRoles, requireRole, hasScopedRole } from "../lib/rbac";
+import { verifyAccessToken } from "../lib/jwt";
 
 export const clubsRouter = Router();
 
@@ -12,17 +13,39 @@ clubsRouter.get("/", async (_req, res) => {
   res.json(clubs);
 });
 
-clubsRouter.get("/:slug", async (req, res) => {
-  const club = await prisma.club.findUnique({
-    where: { slug: req.params.slug },
+/**
+ * Public visitors only see PUBLISHED/ONGOING/COMPLETED events. If the caller
+ * is authenticated and holds CLUB_HEAD/FACULTY_COORDINATOR for this club,
+ * DRAFT/PENDING_APPROVAL/REJECTED events are included too, since their
+ * management dashboards need to see and act on those.
+ */
+clubsRouter.get("/:slug", async (req: AuthedRequest, res) => {
+  const club = await prisma.club.findUnique({ where: { slug: req.params.slug } });
+  if (!club) return res.status(404).json({ error: "Club not found" });
+
+  let canSeeAll = false;
+  const header = req.headers.authorization;
+  if (header?.startsWith("Bearer ")) {
+    try {
+      const { userId } = verifyAccessToken(header.slice("Bearer ".length));
+      const roles = await prisma.userRoleAssignment.findMany({ where: { userId } });
+      canSeeAll =
+        hasScopedRole(roles, "CLUB_HEAD", "CLUB", club.id) ||
+        hasScopedRole(roles, "FACULTY_COORDINATOR", "CLUB", club.id);
+    } catch {
+      // invalid/expired token on a public route just falls back to public visibility
+    }
+  }
+
+  const full = await prisma.club.findUnique({
+    where: { id: club.id },
     include: {
       department: true,
-      members: { include: { user: true } },
-      events: { where: { status: { in: ["PUBLISHED", "ONGOING", "COMPLETED"] } } },
+      members: { include: { user: { select: { id: true, name: true, avatarUrl: true } } } },
+      events: canSeeAll ? true : { where: { status: { in: ["PUBLISHED", "ONGOING", "COMPLETED"] } } },
     },
   });
-  if (!club) return res.status(404).json({ error: "Club not found" });
-  res.json(club);
+  res.json(full);
 });
 
 const createClubSchema = z.object({

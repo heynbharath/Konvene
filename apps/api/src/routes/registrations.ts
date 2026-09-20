@@ -12,11 +12,10 @@ const registerSchema = z.object({
 });
 
 /**
- * Registers the caller for an event. Free ticket types issue a signed ticket
- * immediately; paid ticket types create a PENDING registration + Payment row
- * and the ticket is only issued once /payments/webhook confirms PAID (Phase 1).
- * When the ticket type is at capacity, the registration is WAITLISTED instead
- * of rejected, matching Luma-style waitlist behavior.
+ * Registers the caller for an event and issues a signed QR ticket immediately
+ * (Konvene doesn't process payments — every ticket type is free). When the
+ * ticket type is at capacity, the registration is WAITLISTED instead of
+ * rejected, matching Luma-style waitlist behavior.
  */
 registrationsRouter.post("/events/:eventId/register", requireAuth, async (req: AuthedRequest, res) => {
   const parsed = registerSchema.safeParse(req.body);
@@ -55,15 +54,8 @@ registrationsRouter.post("/events/:eventId/register", requireAuth, async (req: A
     return res.status(202).json({ registration, waitlisted: true });
   }
 
-  if (ticketType.price > 0) {
-    const payment = await prisma.payment.create({
-      data: { registrationId: registration.id, provider: "razorpay", amount: ticketType.price, status: "PENDING" },
-    });
-    return res.status(201).json({ registration, payment, ticket: null, requiresPayment: true });
-  }
-
   const ticket = await issueTicket(registration.id);
-  res.status(201).json({ registration, ticket, requiresPayment: false });
+  res.status(201).json({ registration, ticket });
 });
 
 /** Creates the Ticket row and its signed QR token for a confirmed, paid-for registration. */
@@ -89,10 +81,7 @@ registrationsRouter.delete("/registrations/:id", requireAuth, async (req: Authed
     });
     if (next) {
       await prisma.registration.update({ where: { id: next.id }, data: { status: "CONFIRMED" } });
-      const ticketType = await prisma.ticketType.findUnique({ where: { id: next.ticketTypeId } });
-      if (ticketType && ticketType.price === 0) {
-        await issueTicket(next.id);
-      }
+      await issueTicket(next.id);
       await prisma.notification.create({
         data: {
           userId: next.userId,

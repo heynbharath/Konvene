@@ -72,7 +72,7 @@ certificatesRouter.post("/events/:eventId/issue-certificates", requireAuth, load
 
   const eligible = await prisma.attendance.findMany({
     where: { eventId: event.id, certificate: null },
-    include: { user: true },
+    include: { user: { select: { name: true } } },
   });
 
   const webOrigin = process.env.WEB_ORIGIN ?? "http://localhost:3000";
@@ -106,7 +106,7 @@ certificatesRouter.post("/events/:eventId/issue-certificates", requireAuth, load
 certificatesRouter.get("/verify/:certId", async (req, res) => {
   const cert = await prisma.certificate.findUnique({
     where: { certId: req.params.certId },
-    include: { user: true, event: { include: { club: true } } },
+    include: { user: { select: { name: true } }, event: { include: { club: true } } },
   });
   if (!cert) return res.status(404).json({ valid: false });
 

@@ -34,7 +34,8 @@ College event lifecycles (registration → payment → ticketing → check-in �
 2. **Native mobile apps (iOS/Android)** — the volunteer scanner and student experience are mobile-web (PWA-capable), not App Store apps. Native wraps a working web app is a Phase 3 idea at best.
 3. **WhatsApp Business API integration** — too much compliance/approval overhead for v1; email + in-app + push cover comms needs.
 4. **ERP/LMS sync, NFC/RFID check-in, digital wallet passes** — explicitly designed for extensibility (see §15 Future Integrations) but not implemented.
-5. **Full AI feature suite on day one** — AI assistant/poster generator/etc. are real, valuable, and specified (§9), but scoped to Phase 2/3 so the core transactional loop (register → pay → check-in → attend → certify) is rock solid first.
+5. **Full AI feature suite on day one** — AI assistant/poster generator/etc. are real, valuable, and specified (§9), but scoped to Phase 2/3 so the core transactional loop (register → check-in → attend → certify) is rock solid first.
+6. **Payments, paid tickets, and coupons** — a deliberate scope decision, not a Phase-2 deferral: Konvene does not process payments at all. Every ticket type (Free/VIP/Volunteer/Speaker/Guest/Judge/Sponsor/Media/Workshop) is a free access tier distinguished by capacity, not price. This removes an entire category of PCI/compliance/webhook-security surface area that has no bearing on the platform's actual differentiators (QR check-in integrity, faculty-verified attendance). If a real deployment later needs paid ticketing, it should be scoped as its own future initiative, not bolted back on.
 
 ## 4. Personas & Primary Journeys
 
@@ -77,7 +78,6 @@ Roles are **scoped**, not global (except SUPER_ADMIN/ADMIN): a user is `CLUB_HEA
 | Send announcements/email campaigns | ✅ | ✅ | dept | ❌ | ❌ | own club | own club | ❌ | ❌ |
 | View own tickets/certificates/attendance | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Register for events | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Manage payments/refunds | ✅ | ✅ | ❌ | ❌ | ❌ | request | ❌ | ❌ | ❌ |
 | View audit log | ✅ | ✅ | dept scope | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 *Enforcement: every API route declares required `(role, scopeType)`; middleware resolves the user's `UserRoleAssignment` rows and checks scope match against the resource being accessed (e.g., event.clubId, subject.facultyId).*
@@ -120,18 +120,18 @@ Each module lists P0 (must-have for a working end-to-end demo), P1 (should-have,
 - P2: Team/group registration (register a team of N with one form).
 
 ### 6.6 Ticketing
-- P0: Ticket types per event: Free, Paid, VIP, Volunteer, Speaker, Guest, Judge, Sponsor, Media, Workshop — each with its own price, capacity, and optionally its own form fields.
+- P0: Ticket types per event — Free, VIP, Volunteer, Speaker, Guest, Judge, Sponsor, Media, Workshop — are free access tiers, each with its own capacity and optionally its own form fields. Konvene does not process payments (see Non-Goal #6); there is no "Paid" tier with a price.
 - P0: Each successful registration generates exactly one `Ticket` with a unique ID, bound to one `QRCheckIn` record (see §6.7).
 - P1: Ticket transfer (reassign a ticket to another registered email before the event).
-- P2: Ticket resale/marketplace — out of scope entirely.
+- Out of scope entirely: paid ticketing, ticket resale/marketplace, coupons.
 
 ### 6.7 QR Ticketing & Check-in (must be real, not mocked)
 - P0: On ticket creation, generate a signed payload `{ticketId, eventId, issuedAt}` HMAC-signed (or Ed25519-signed) server-side; encode as QR containing a compact token (JWT-like, base64url, short, e.g., `ticketId.signature`). **Do not just encode a plain UUID** — the signature is what prevents forgery.
 - P0: Verification endpoint `POST /checkin/verify` re-validates the signature server-side, checks ticket status (`ISSUED` → transitions to `CHECKED_IN`; already `CHECKED_IN` → reject as duplicate; `CANCELLED`/`BLACKLISTED` → reject with reason) — this state transition must be atomic (DB transaction / row lock) so two volunteers scanning the same QR simultaneously can't both succeed.
 - P0: Scanner UI (mobile-web camera scan via a library like `html5-qrcode` or `zxing`) shows instantly: photo, name, department/year, ticket type, and check-in result (success/duplicate/invalid/blacklisted).
 - P1: Offline mode — scanner caches the event's valid ticket-signature public key client-side, can verify signature offline and queue check-in writes to sync when back online (signature check works offline since it's just crypto verification against a known public key; the *duplicate* check requires either periodic sync of already-checked-in IDs to a local cache, or accepting a small race window and reconciling after reconnect).
-- P1: Manual check-in fallback (search by name/USN) for attendees who lost their QR.
-- P2: Dynamic/rotating QR (regenerates every N seconds) for anti-screenshot-sharing on high-value paid tickets.
+- P1: Manual check-in fallback (search by name/USN) for attendees who lost their QR — implemented (`/checkin/search`, `/checkin/manual`), routed through the same atomic state transition as a QR scan.
+- P2: Dynamic/rotating QR (regenerates every N seconds) for anti-screenshot-sharing on high-demand tickets.
 
 ### 6.8 Attendance (core differentiator)
 - P0: `CheckIn` (physical presence, from §6.7) is distinct from `Attendance` (academic credit). Checking in marks the ticket `CHECKED_IN` and creates an `AttendanceCandidate` row.
@@ -147,11 +147,8 @@ Each module lists P0 (must-have for a working end-to-end demo), P1 (should-have,
 - P1: Club-branded certificate templates (logo, signature image, custom layout).
 - P2: Blockchain hash anchoring (store certificate hash on-chain or in a public append-only log) — genuinely optional, mostly a marketing/differentiator feature, not needed for verification integrity since server-side verification already works.
 
-### 6.10 Payments
-- P0: Razorpay integration for paid tickets — order creation server-side, checkout on client, webhook-based payment confirmation (never trust client-side "payment success" callbacks alone).
-- P0: Payment status states: `PENDING`, `PAID`, `FAILED`, `REFUNDED`; ticket only becomes `ISSUED` after webhook confirms `PAID`.
-- P1: Coupon codes (fixed or percentage discount), scholarship/waiver codes (100% discount, tracked separately for reporting).
-- P2: Stripe as a second gateway (for international events/sponsors), automated refund workflow, GST-compliant invoice PDF generation.
+### 6.10 Payments — removed from scope
+Not built, not planned. See Non-Goal #6. Every ticket issues immediately on registration (or on waitlist promotion) with no payment step in between.
 
 ### 6.11 Notifications & Comms
 - P0: Transactional emails via Resend: registration confirmation (with QR ticket attached/linked), event reminder (24h before), certificate-ready notification.
@@ -188,7 +185,7 @@ AI Event Assistant, AI Poster Generator, AI Email Writer, AI Schedule Generator,
 
 ## 7. Non-Functional Requirements (sized for a solo/portfolio project)
 
-- **Security**: Passwords hashed (bcrypt/argon2) if not using OAuth exclusively; QR tokens cryptographically signed (§6.7) — this is the one place where cutting corners defeats the entire feature's purpose, so do not mock it; all mutating endpoints require auth + role check; payment webhook signature verified (Razorpay webhook secret); file uploads restricted by type/size and scanned for extension spoofing (check MIME + magic bytes, not just extension).
+- **Security**: Passwords hashed (bcrypt/argon2) if not using OAuth exclusively; QR tokens cryptographically signed (§6.7) — this is the one place where cutting corners defeats the entire feature's purpose, so do not mock it; all mutating endpoints require auth + role check; file uploads restricted by type/size and scanned for extension spoofing (check MIME + magic bytes, not just extension); every Prisma query returning a `User` must use an explicit `select` rather than a bare `include: { user: true }`, so `passwordHash` is never accidentally serialized into a response.
 - **Performance**: Event listing and check-in-scan response times should feel instant (<300ms typical) — achievable on Postgres with indexes on `eventId`, `ticketId`, `userId` foreign keys; no need for caching layers (Redis) at this scale unless you want to demo one for learning purposes.
 - **Scalability**: Design the schema to *not paint yourself into a corner* (proper foreign keys, no denormalized role strings) but do not build for scale you don't have — single Postgres instance is fine.
 - **Accessibility**: Semantic HTML, keyboard-navigable forms, sufficient color contrast (shadcn/ui defaults are solid here) — a full WCAG audit is out of scope for one day, but don't actively break it.
@@ -200,8 +197,8 @@ AI Event Assistant, AI Poster Generator, AI Email Writer, AI Schedule Generator,
 *(Text wireframes — sufficient to build from; visual design system in §10.)*
 
 1. **Landing / Event Discovery** — hero + search bar, filter chips (category/department/date/free-paid), grid of event cards (banner, title, club logo, date, "X spots left" or "Waitlist" badge).
-2. **Event Detail Page** — banner, title, club + faculty advisor byline, date/time/venue block, tabbed body (Overview / Agenda / FAQs / Sponsors), sticky "Register" CTA showing price + spots remaining, dynamically switches to "Join Waitlist" when full, to "View My Ticket" once registered.
-3. **Registration Form Page** — dynamically rendered from the event's form schema, ticket-type selector (radio cards with price), submit → Razorpay checkout modal if paid → success screen with QR ticket + "Add to Calendar" (.ics download).
+2. **Event Detail Page** — banner, title, club + faculty advisor byline, date/time/venue block, tabbed body (Overview / Agenda / FAQs / Sponsors), sticky "Register" CTA showing spots remaining, dynamically switches to "Join Waitlist" when full, to "View My Ticket" once registered.
+3. **Registration Form Page** — dynamically rendered from the event's form schema, ticket-type selector (radio cards), submit → signed QR ticket issued immediately (no payment step) → success screen with QR ticket + "Add to Calendar" (.ics download).
 4. **My Tickets / Profile** — tabs: Upcoming, Past, Certificates. Each ticket card expands to show the QR code full-screen (for showing at the door).
 5. **Club Head — Event Creation Wizard** — step 1 basics, step 2 form builder (drag-and-drop field list), step 3 ticket types, step 4 review → submit for approval.
 6. **Club Head — Event Dashboard** — tabs: Overview (stats cards), Registrations (table, exportable CSV), Check-in (live counts), Attendance (list + faculty-approval status), Certificates (issue/regenerate).
@@ -256,7 +253,7 @@ Event { id, clubId, title, slug, bannerUrl, description, category, venue,
         startAt, endAt, capacity, status, requiresFacultyAttendance, linkedSubjectId? }
 EventForm { id, eventId, schemaJson }                 // form field definitions
 Registration { id, eventId, userId, formResponseJson, ticketTypeId, status, createdAt }  // status: CONFIRMED | WAITLISTED | CANCELLED
-TicketType { id, eventId, name, price, capacity }     // Free/Paid/VIP/Volunteer/etc.
+TicketType { id, eventId, name, capacity }            // Free/VIP/Volunteer/etc. — all free, no price field
 Ticket { id, registrationId, qrSignature, status, issuedAt }  // status: ISSUED | CHECKED_IN | CANCELLED | BLACKLISTED
 
 CheckIn { id, ticketId, scannedByUserId, scannedAt, method }  // method: QR | MANUAL
@@ -265,9 +262,6 @@ PendingAttendance { id, attendanceCandidateId, facultyUserId, status }  // statu
 Attendance { id, userId, eventId, subjectId?, creditedByUserId, creditedAt }
 
 Certificate { id, userId, eventId, certId (public), pdfUrl, issuedAt }
-
-Payment { id, registrationId, provider, providerOrderId, amount, status, webhookVerifiedAt }
-Coupon { id, eventId, code, discountType, discountValue, maxUses }
 
 Announcement { id, clubId or eventId, title, body, sentAt }
 Notification { id, userId, type, payloadJson, readAt }
@@ -292,21 +286,19 @@ AuditLog { id, actorUserId, action, targetType, targetId, beforeJson, afterJson,
 ### 12.3 Attendance Pipeline
 `CheckIn created → AttendanceCandidate created → PendingAttendance(PENDING) → faculty action → PendingAttendance(APPROVED|REJECTED) → Attendance row created only on APPROVED → Certificate eligibility flag set`.
 
-### 12.4 Payment
-`PENDING → PAID (webhook) → (optional) REFUNDED` ; `PENDING → FAILED` if checkout abandoned/declined. Ticket is only issued on `PAID`.
-
 ## 13. REST API Surface (by module)
 
 ```
 Auth:            POST /auth/signup, POST /auth/login, POST /auth/oauth/google, POST /auth/refresh
 Users:           GET /users/me, PATCH /users/me, GET /users/:id/profile
 Clubs:           GET /clubs, GET /clubs/:slug, POST /clubs (admin), PATCH /clubs/:id, POST /clubs/:id/members
-Events:          GET /events, GET /events/:slug, POST /events, PATCH /events/:id, POST /events/:id/submit-for-approval, POST /events/:id/approve
+Events:          GET /events, GET /events/:slug, POST /events, PATCH /events/:id,
+                 POST /events/:id/submit-for-approval, POST /events/:id/approve,
+                 POST /events/:id/reject, POST /events/:id/revise, GET /events/pending-approval/mine
 Forms:           GET /events/:id/form, PUT /events/:id/form
 Registrations:   POST /events/:id/register, GET /events/:id/registrations, DELETE /registrations/:id
 Tickets:         GET /tickets/:id, GET /tickets/mine
-Payments:        POST /payments/create-order, POST /payments/webhook
-Check-in:        POST /checkin/verify, POST /checkin/manual, GET /events/:id/checkin-stats
+Check-in:        POST /checkin/verify, POST /checkin/manual, GET /checkin/search, GET /events/:id/checkin-stats
 Attendance:      GET /faculty/pending-attendance, POST /pending-attendance/:id/approve, POST /pending-attendance/:id/reject
 Certificates:    POST /events/:id/issue-certificates, GET /certificates/mine, GET /verify/:certId (public)
 Announcements:   POST /clubs/:id/announcements, POST /events/:id/email-campaign
@@ -317,7 +309,9 @@ Audit:           GET /admin/audit-log
 
 ## 14. Sequence Walkthroughs
 
-**Registration + Payment**: Client `POST /events/:id/register` → server validates form against schema + capacity → if ticket type has price>0, create `Payment(PENDING)` + Razorpay order, return orderId to client → client opens Razorpay checkout → Razorpay sends webhook `POST /payments/webhook` → server verifies webhook signature → marks `Payment(PAID)` → creates `Ticket(ISSUED)` with signed QR → sends confirmation email with QR.
+**Registration**: Client `POST /events/:id/register` → server validates form against schema + capacity → if the ticket type is at capacity, registration is `WAITLISTED` and the flow ends there; otherwise → server creates `Ticket(ISSUED)` with a signed QR token in the same request (no payment step — see Non-Goal #6) → sends confirmation email with QR. On a later cancellation, the earliest `WAITLISTED` registration is promoted and issued a ticket the same way.
+
+**Event Approval**: Club head `POST /events/:id/submit-for-approval` → `DRAFT → PENDING_APPROVAL` → the club's Faculty Coordinator sees it via `GET /events/pending-approval/mine` → `POST /events/:id/approve` (`→ PUBLISHED`) or `POST /events/:id/reject {reason}` (`→ REJECTED`) → a rejected event's club head calls `POST /events/:id/revise` (`→ DRAFT`) to edit and resubmit.
 
 **QR Check-in**: Volunteer scans QR → client decodes token → `POST /checkin/verify {token}` → server verifies signature → `SELECT ticket FOR UPDATE` → if `ISSUED`, transition to `CHECKED_IN`, create `CheckIn` + `AttendanceCandidate` rows in same transaction → return attendee info to scanner UI. If already `CHECKED_IN`, return `409 duplicate` with original scan timestamp.
 
@@ -327,7 +321,7 @@ Audit:           GET /admin/audit-log
 
 ## 15. Technical Architecture & Future Integrations
 
-**Architecture**: Next.js 15 (App Router) frontend on Vercel; Express or NestJS API on Railway/Render; PostgreSQL on Supabase/Neon via Prisma; Cloudinary for images (banners, avatars, certificates), S3-compatible bucket for documents (brochures, resumes); Resend for transactional email; Razorpay for payments; Socket.IO only if/when live chat (§6.12 P2) is built — otherwise skip the realtime infra entirely and use polling/SSE for the live check-in dashboard counter, which is far simpler to get right in one day.
+**Architecture**: Next.js 15 (App Router) frontend on Vercel; Express or NestJS API on Railway/Render; PostgreSQL on Supabase/Neon via Prisma; Cloudinary for images (banners, avatars, certificates), S3-compatible bucket for documents (brochures, resumes); Resend for transactional email; Socket.IO only if/when live chat (§6.12 P2) is built — otherwise skip the realtime infra entirely and use polling/SSE for the live check-in dashboard counter, which is far simpler to get right in one day. No payment gateway in the stack at all (see Non-Goal #6).
 
 **Auth**: Better Auth (self-hosted, no vendor lock-in, good Next.js integration) recommended over Clerk for a project you want full schema control over (Clerk manages its own user table, which fights the custom `UserRoleAssignment`/`StudentProfile` model this PRD needs).
 
@@ -335,39 +329,38 @@ Audit:           GET /admin/audit-log
 
 ## 16. Phased Roadmap
 
-### Phase 0 — Today's MVP (single focused day, buildable solo)
-1. Auth (email/password + Google OAuth), basic role assignment (seed an Admin, a couple of Club Heads, a Faculty, some Students manually via seed script).
-2. Club CRUD (minimal — just enough to attach events to).
-3. Event CRUD + publish flow (skip the approval step for day 1 — Club Head can publish directly; add approval gate in Phase 1).
-4. Registration with a fixed (not fully dynamic) form: name/USN/branch/year/section pre-filled from profile + 2-3 event-specific fields hardcoded per event for the demo.
-5. Free tickets only for day 1 (skip Razorpay integration initially if time is tight — it's the single highest-effort, highest-risk-of-breaking module; add it once check-in works, as Phase 0.5).
-6. **QR generation + signed verification + scanner UI** — this is non-negotiable for the "not mocked" requirement; build this early, it's the technical core.
-7. Check-in flow end-to-end (scan → status flip → live count).
-8. Basic attendance pipeline: `CheckIn` → `AttendanceCandidate` → simplest possible faculty approval screen (even an unstyled table with an Approve button is fine for day 1) → `Attendance` row.
-9. Certificate PDF generation + public verify page — this is very achievable in an hour with a PDF library and makes the demo land.
-10. One dashboard: Club Head's event page showing registration count + check-in count live.
+### Phase 0 — done, built and verified end-to-end
+1. Auth (email/password), scoped RBAC (`UserRoleAssignment` with role + scopeType + scopeId), seed script with an Admin, Faculty (also Faculty Coordinator), Club Head, and Students.
+2. Club CRUD, event CRUD with dynamic (not hardcoded) registration form builder.
+3. **Event approval workflow**: `DRAFT → PENDING_APPROVAL → PUBLISHED`, gated by the club's Faculty Coordinator (or Admin), with `REJECTED → DRAFT` revision.
+4. Free ticket types with capacity, waitlist, and auto-promotion on cancellation — no payment step anywhere (see Non-Goal #6).
+5. **QR generation + signed verification + scanner UI** — HMAC-signed tokens, atomic race-safe check-in, verified against forged-signature and duplicate-scan attempts.
+6. **Manual check-in fallback** (search by name/USN), routed through the identical atomic state transition as a QR scan.
+7. Full attendance pipeline: `CheckIn` → `AttendanceCandidate` → routed to the *actual subject faculty* via `SubjectFacultyAssignment` → `PendingAttendance` → faculty approves/rejects → `Attendance` credited.
+8. Certificate PDF generation + public no-login verify page.
+9. Club-head dashboard (live stats + scanner + manual check-in + registrations) and faculty dashboard (pending attendance + pending event approvals).
 
-*If you truly only have hours: cut certificates and payments before you cut QR check-in + faculty-verified attendance — those two are the actual differentiators and the parts a reviewer/grader will specifically probe.*
-
-### Phase 1 (next few days)
-Razorpay payments, waitlist auto-promotion, dynamic form builder (replace hardcoded fields), event approval workflow (Faculty Coordinator gate), email notifications via Resend, admin dashboard, coupon codes.
+### Phase 1 (next)
+Email notifications via Resend (registration confirmation, reminders, certificate-ready), admin dashboard (cross-club/department analytics), `.ics` calendar export.
 
 ### Phase 2 (following weeks)
-AI feedback summarization + rule-based fraud detection, community/Q&A threads, .ics calendar export, club-branded certificate templates, audit log UI, refund workflow.
+AI feedback summarization + rule-based fraud/duplicate-check-in detection, community/Q&A threads, club-branded certificate templates, an audit log viewer UI (the `AuditLog` table itself already records event approvals/rejections).
 
 ### Phase 3 (future)
 Full AI suite (poster/email/schedule generation, AI event assistant), real-time chat, ERP sync, NFC/RFID check-in, wallet passes, native mobile, multi-university tenancy.
 
+Payments, paid ticketing, and coupons are not on this roadmap at any phase — see Non-Goal #6.
+
 ## 17. Testing Strategy (lean)
 
-- **Must test manually end-to-end before calling it done**: one full run of register → (pay) → get QR → scan check-in → faculty approves attendance → certificate generates → verify page shows it valid. This single manual run is worth more than a large automated suite for a one-day build.
+- **Must test manually end-to-end before calling it done**: one full run of register → get QR → scan check-in → faculty approves attendance → certificate generates → verify page shows it valid. This single manual run is worth more than a large automated suite for a one-day build.
 - **Automate only the QR signature verification logic** (pure function, easy to unit test, and the one place a silent bug would be catastrophic — e.g., a forged QR being accepted). A handful of Jest/Vitest tests: valid signature accepted, tampered payload rejected, expired/wrong-event token rejected, double-scan rejected.
 - **Skip**: full E2E browser test suites, load testing — not proportionate to project scope.
 
 ## 18. Deployment Plan
 
 1. Postgres on Supabase/Neon (free tier is sufficient for a demo).
-2. API on Railway/Render (free/hobby tier), env vars for DB URL, JWT secret, Razorpay keys, Resend API key, Cloudinary keys.
+2. API on Railway/Render (free/hobby tier), env vars for DB URL, JWT secret, QR signing secret, Resend API key, Cloudinary keys.
 3. Frontend on Vercel, pointed at the deployed API.
 4. Seed script populates: one University, 2-3 Departments/Branches/Sections/Subjects, a couple of Clubs, a handful of demo Users across every role, and 1-2 sample Events — so the deployed instance is demoable immediately without manual data entry.
 5. Smoke-test the full journey (§17) against the deployed environment, not just localhost, before sharing the link.

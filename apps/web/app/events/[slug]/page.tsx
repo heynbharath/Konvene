@@ -25,7 +25,7 @@ interface EventDetail {
   endAt: string;
   capacity: number;
   club: { name: string; slug: string };
-  ticketTypes: { id: string; name: string; price: number; capacity: number }[];
+  ticketTypes: { id: string; name: string; capacity: number }[];
   form: { schemaJson: string } | null;
   _count: { registrations: number };
 }
@@ -99,7 +99,7 @@ export default function EventDetailPage() {
             >
               {event.ticketTypes.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.name} — {t.price === 0 ? "Free" : `₹${(t.price / 100).toFixed(2)}`}
+                  {t.name}
                 </option>
               ))}
             </select>
@@ -157,16 +157,6 @@ function RegistrationResult({ result }: { result: any }) {
         <StatusBadge status="WAITLISTED" />
         <p className="mt-3 text-white/70">
           This event is at capacity — you're on the waitlist and will be promoted automatically if a spot opens up.
-        </p>
-      </div>
-    );
-  }
-  if (result.requiresPayment) {
-    return (
-      <div>
-        <StatusBadge status="PENDING" />
-        <p className="mt-3 text-white/70">
-          Payment required to confirm your ticket (Razorpay checkout — Phase 1). Your registration is held pending payment.
         </p>
       </div>
     );

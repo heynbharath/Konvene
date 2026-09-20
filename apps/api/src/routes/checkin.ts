@@ -24,7 +24,11 @@ async function performCheckIn(ticketId: string, scannedByUserId: string, method:
     where: { id: ticketId },
     include: {
       registration: {
-        include: { user: { include: { studentProfile: true } }, event: true, ticketType: true },
+        include: {
+          user: { select: { id: true, name: true, usn: true, studentProfile: true } },
+          event: true,
+          ticketType: true,
+        },
       },
     },
   });
@@ -122,7 +126,11 @@ checkinRouter.get("/search", requireAuth, loadRoles, async (req: AuthedRequest, 
       status: "CONFIRMED",
       user: { OR: [{ name: { contains: q } }, { usn: { contains: q } }] },
     },
-    include: { user: true, ticket: true, ticketType: true },
+    include: {
+      user: { select: { id: true, name: true, usn: true, email: true } },
+      ticket: { select: { status: true } },
+      ticketType: { select: { name: true } },
+    },
     take: 10,
   });
   res.json(results);
