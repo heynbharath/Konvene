@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background: #0b0b14;
+  color: #f2f2f7;
+}
+
+.status-badge {
+  @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+}
+.status-ISSUED, .status-CONFIRMED, .status-PUBLISHED { @apply bg-blue-500/15 text-blue-400; }
+.status-CHECKED_IN, .status-APPROVED, .status-SUCCESS { @apply bg-emerald-500/15 text-emerald-400; }
+.status-WAITLISTED, .status-PENDING, .status-PENDING_APPROVAL { @apply bg-amber-500/15 text-amber-400; }
+.status-CANCELLED, .status-BLACKLISTED, .status-REJECTED, .status-INVALID, .status-DUPLICATE { @apply bg-red-500/15 text-red-400; }
