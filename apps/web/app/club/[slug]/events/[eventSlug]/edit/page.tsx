@@ -13,7 +13,7 @@ interface EventDetail extends EventFormInitial {
 
 export default function EditEventPage() {
   const { slug, eventSlug } = useParams<{ slug: string; eventSlug: string }>();
-  const { user, loading } = useAuth();
+  const { user, loading, hasRole } = useAuth();
   const [event, setEvent] = useState<EventDetail | null>(null);
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export default function EditEventPage() {
 
   if (loading || !event) return <p className="text-inkSoft">Loading…</p>;
 
-  const canEdit = user?.clubMemberships?.some((m) => m.club.slug === slug && m.role === "CLUB_HEAD") || false;
+  const canEdit = hasRole("ADMIN") || user?.clubMemberships?.some((m) => m.club.slug === slug && m.role === "CLUB_HEAD") || false;
   if (!canEdit) return <p className="text-inkSoft">Only this club's head can edit events.</p>;
   if (event.status !== "DRAFT" && event.status !== "REJECTED") {
     return <p className="text-inkSoft">This event is {event.status.toLowerCase().replace("_", " ")} and can no longer be edited.</p>;

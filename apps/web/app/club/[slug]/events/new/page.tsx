@@ -13,7 +13,7 @@ interface ClubDetail {
 
 export default function NewEventPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { token, user, loading } = useAuth();
+  const { token, user, loading, hasRole } = useAuth();
   const [club, setClub] = useState<ClubDetail | null>(null);
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export default function NewEventPage() {
 
   if (loading || !club) return <p className="text-inkSoft">Loading…</p>;
 
-  const canCreate = user?.clubMemberships?.some((m) => m.club.slug === slug && m.role === "CLUB_HEAD") || false;
+  const canCreate = hasRole("ADMIN") || user?.clubMemberships?.some((m) => m.club.slug === slug && m.role === "CLUB_HEAD") || false;
   if (!canCreate) {
     return <p className="text-inkSoft">Only this club's head can create events here.</p>;
   }

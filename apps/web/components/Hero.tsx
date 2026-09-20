@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import { StickerCluster } from "./StickerCluster";
 
 interface Stats {
@@ -18,11 +19,16 @@ const TICKER_WORDS = [
 ];
 
 export function Hero() {
+  const { user } = useAuth();
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
     api<Stats>("/stats").then(setStats).catch(() => {});
   }, []);
+
+  const firstClub = user?.clubMemberships?.[0]?.club;
+  const secondaryHref = firstClub ? `/club/${firstClub.slug}/dashboard` : "/tickets";
+  const secondaryLabel = firstClub ? `${firstClub.name} dashboard` : "My tickets";
 
   const statItems = stats
     ? [
@@ -54,7 +60,7 @@ export function Hero() {
           transition={{ type: "spring", stiffness: 200, damping: 12 }}
           className="stamp mx-auto mb-6 inline-flex items-center gap-2 rounded-full border-[1.5px] border-ink bg-acid px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-ink"
         >
-          Not another event app
+          {user ? `Welcome back, ${user.name.split(" ")[0]}` : "Not another event app"}
         </motion.div>
 
         <motion.h1
@@ -63,15 +69,25 @@ export function Hero() {
           transition={{ delay: 0.1 }}
           className="mx-auto max-w-4xl text-[2.75rem] font-medium leading-[1.02] tracking-tight sm:text-7xl"
         >
-          Campus events,
-          <br />
-          run like a{" "}
-          <span className="relative inline-block italic text-signal">
-            real product.
-            <svg className="absolute -bottom-2 left-0 w-full" height="12" viewBox="0 0 200 12" preserveAspectRatio="none">
-              <path d="M0,8 Q50,0 100,8 T200,8" stroke="#15130F" strokeWidth="3" fill="none" />
-            </svg>
-          </span>
+          {user ? (
+            <>
+              What's happening
+              <br />
+              on <span className="relative inline-block italic text-signal">campus.</span>
+            </>
+          ) : (
+            <>
+              Campus events,
+              <br />
+              run like a{" "}
+              <span className="relative inline-block italic text-signal">
+                real product.
+                <svg className="absolute -bottom-2 left-0 w-full" height="12" viewBox="0 0 200 12" preserveAspectRatio="none">
+                  <path d="M0,8 Q50,0 100,8 T200,8" stroke="#15130F" strokeWidth="3" fill="none" />
+                </svg>
+              </span>
+            </>
+          )}
         </motion.h1>
 
         <motion.p
@@ -80,8 +96,9 @@ export function Hero() {
           transition={{ delay: 0.2 }}
           className="mx-auto mt-6 max-w-xl text-base text-inkSoft sm:text-lg"
         >
-          Registration, QR check-in, and faculty-verified attendance —
-          replacing WhatsApp threads, Google Forms, and a clipboard sign-in sheet.
+          {user
+            ? "Register for what's live right now, or jump back into what you're already part of."
+            : "Registration, QR check-in, and faculty-verified attendance — replacing WhatsApp threads, Google Forms, and a clipboard sign-in sheet."}
         </motion.p>
 
         <motion.div
@@ -93,8 +110,8 @@ export function Hero() {
           <a href="#events" className="btn-signal rounded-full px-7 py-3.5 text-sm font-bold uppercase tracking-wide">
             Explore events
           </a>
-          <Link href="/signup" className="btn-outline rounded-full px-7 py-3.5 text-sm font-bold uppercase tracking-wide">
-            Create account
+          <Link href={user ? secondaryHref : "/signup"} className="btn-outline rounded-full px-7 py-3.5 text-sm font-bold uppercase tracking-wide">
+            {user ? secondaryLabel : "Create account"}
           </Link>
         </motion.div>
 

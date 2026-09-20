@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useAuth } from "@/lib/auth";
 
 export function Footer() {
+  const { user } = useAuth();
+
   return (
     <footer className="mt-24 border-t-[1.5px] border-ink">
       <div className="overflow-hidden border-b-[1.5px] border-ink bg-ink py-2.5">
@@ -30,9 +35,17 @@ export function Footer() {
             <p className="mb-3 font-mono text-xs font-bold uppercase tracking-wide text-inkSoft">Product</p>
             <ul className="space-y-2 text-sm">
               <li><Link href="/" className="hover:text-signal">Discover events</Link></li>
-              <li><Link href="/signup" className="hover:text-signal">Create account</Link></li>
-              <li><Link href="/tickets" className="hover:text-signal">My tickets</Link></li>
-              <li><Link href="/faculty" className="hover:text-signal">Faculty dashboard</Link></li>
+              {user ? (
+                <>
+                  <li><Link href="/tickets" className="hover:text-signal">My tickets</Link></li>
+                  <li><Link href="/faculty" className="hover:text-signal">Faculty dashboard</Link></li>
+                </>
+              ) : (
+                <>
+                  <li><Link href="/signup" className="hover:text-signal">Create account</Link></li>
+                  <li><Link href="/login" className="hover:text-signal">Log in</Link></li>
+                </>
+              )}
             </ul>
           </div>
           <div>

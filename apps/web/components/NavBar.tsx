@@ -1,13 +1,27 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ChevronDown, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 export function NavBar() {
   const { user, logout, hasRole } = useAuth();
   const pathname = usePathname();
+  const [clubMenuOpen, setClubMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setClubMenuOpen(false);
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
+  const clubMemberships = user?.clubMemberships ?? [];
 
   const links = [
     { href: "/", label: "Discover" },
@@ -39,6 +53,32 @@ export function NavBar() {
               {pathname === l.href && <span className="absolute -bottom-[17px] left-0 right-0 h-[3px] bg-signal" />}
             </Link>
           ))}
+
+          {clubMemberships.length > 0 && (
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setClubMenuOpen((v) => !v)}
+                className="flex items-center gap-1 py-1 text-inkSoft transition-colors hover:text-ink"
+              >
+                <LayoutDashboard className="h-3.5 w-3.5" /> My Clubs <ChevronDown className="h-3 w-3" />
+              </button>
+              {clubMenuOpen && (
+                <div className="absolute right-0 top-full z-50 mt-2 w-56 border-[1.5px] border-ink bg-paper shadow-hard-sm">
+                  {clubMemberships.map((m) => (
+                    <Link
+                      key={m.club.slug}
+                      href={`/club/${m.club.slug}/dashboard`}
+                      onClick={() => setClubMenuOpen(false)}
+                      className="block border-b border-dashed border-ink/20 px-4 py-2.5 text-sm last:border-0 hover:bg-paperAlt"
+                    >
+                      <div className="font-semibold">{m.club.name}</div>
+                      <div className="font-mono text-[10px] uppercase tracking-wide text-inkSoft">{m.role.replace("_", " ")}</div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-3 text-sm">
