@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { StickerCluster } from "./StickerCluster";
 
 interface Stats {
   clubs: number;
@@ -34,6 +35,7 @@ export function Hero() {
 
   return (
     <section className="relative mb-16">
+      <StickerCluster />
       {/* Marquee ticker */}
       <div className="mb-10 overflow-hidden border-y-[1.5px] border-ink bg-ink py-2.5">
         <div className="marquee-track flex w-max gap-8 whitespace-nowrap">

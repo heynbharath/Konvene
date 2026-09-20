@@ -1,7 +1,8 @@
 "use client";
 
+import { useRef } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Calendar, MapPin, Users } from "lucide-react";
 import { categoryStyle } from "@/lib/utils";
 
@@ -19,15 +20,40 @@ interface EventCardProps {
 
 export function EventCard({ slug, title, category, clubName, startAt, venue, registered, capacity, index = 0 }: EventCardProps) {
   const full = registered >= capacity;
-  const { bg, fg } = categoryStyle(category);
+  const { bg } = categoryStyle(category);
+
+  const ref = useRef<HTMLAnchorElement>(null);
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const rotateX = useSpring(useTransform(my, [-0.5, 0.5], [7, -7]), { stiffness: 250, damping: 20 });
+  const rotateY = useSpring(useTransform(mx, [-0.5, 0.5], [-7, 7]), { stiffness: 250, damping: 20 });
+
+  function onMouseMove(e: React.MouseEvent<HTMLAnchorElement>) {
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    mx.set((e.clientX - rect.left) / rect.width - 0.5);
+    my.set((e.clientY - rect.top) / rect.height - 0.5);
+  }
+  function onMouseLeave() {
+    mx.set(0);
+    my.set(0);
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.05, ease: "easeOut" }}
+      style={{ perspective: 800 }}
     >
-      <Link href={`/events/${slug}`} className="card card-hover block overflow-hidden">
+      <Link href={`/events/${slug}`} legacyBehavior passHref>
+        <motion.a
+          ref={ref}
+          onMouseMove={onMouseMove}
+          onMouseLeave={onMouseLeave}
+          style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+          className="card card-hover block overflow-hidden"
+        >
         <div className="relative h-28 w-full border-b-[1.5px] border-ink" style={{ backgroundColor: bg }}>
           <div className="absolute inset-0 bg-dot-grid bg-dots opacity-20 mix-blend-overlay" />
           <span
@@ -70,6 +96,7 @@ export function EventCard({ slug, title, category, clubName, startAt, venue, reg
             </div>
           </div>
         </div>
+        </motion.a>
       </Link>
     </motion.div>
   );

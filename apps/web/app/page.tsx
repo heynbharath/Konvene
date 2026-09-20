@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { Hero } from "@/components/Hero";
 import { EventCard } from "@/components/EventCard";
+import { HowItWorks } from "@/components/HowItWorks";
+import { FeatureGrid } from "@/components/FeatureGrid";
+import { ClubMarquee } from "@/components/ClubMarquee";
 import { Search } from "lucide-react";
 
 interface EventCardData {
@@ -42,6 +45,8 @@ export default function DiscoverPage() {
   return (
     <div>
       <Hero />
+      <ClubMarquee />
+      <HowItWorks />
 
       <section id="events" className="scroll-mt-24">
         <div className="mb-6 flex flex-col gap-4 border-b-[1.5px] border-ink pb-5 sm:flex-row sm:items-end sm:justify-between">
@@ -108,6 +113,8 @@ export default function DiscoverPage() {
           </div>
         )}
       </section>
+
+      <FeatureGrid />
     </div>
   );
 }

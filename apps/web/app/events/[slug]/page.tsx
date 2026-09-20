@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
+import confetti from "canvas-confetti";
 import { Calendar, Clock, MapPin, Users, CheckCircle2 } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -179,6 +180,18 @@ export default function EventDetailPage() {
 }
 
 function RegistrationResult({ result }: { result: any }) {
+  useEffect(() => {
+    if (result.waitlisted) return;
+    confetti({
+      particleCount: 90,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ["#FF4A1F", "#1F32E0", "#D6FF3F", "#15130F"],
+      shapes: ["square"],
+      scalar: 0.9,
+    });
+  }, [result]);
+
   if (result.waitlisted) {
     return (
       <div>
