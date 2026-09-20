@@ -80,7 +80,7 @@ export default function TicketsPage() {
                 <div className="text-sm text-white/50">Cert ID: {c.certId}</div>
               </div>
               <a
-                href={`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}${c.pdfUrl}`}
+                href={c.pdfUrl.startsWith("http") ? c.pdfUrl : `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}${c.pdfUrl}`}
                 target="_blank"
                 className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/20"
               >

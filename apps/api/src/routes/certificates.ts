@@ -1,21 +1,18 @@
 import { Router } from "express";
 import crypto from "crypto";
-import fs from "fs";
-import path from "path";
 import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
 import { prisma } from "../lib/prisma";
 import { AuthedRequest, requireAuth, loadRoles, hasScopedRole } from "../lib/rbac";
+import { saveCertificatePdf } from "../lib/storage";
 
 export const certificatesRouter = Router();
-
-const CERT_DIR = path.join(__dirname, "..", "..", "uploads", "certificates");
-fs.mkdirSync(CERT_DIR, { recursive: true });
 
 function newCertId(): string {
   return crypto.randomBytes(6).toString("hex").toUpperCase();
 }
 
+/** Renders the certificate to a PDF buffer, then hands it to storage (Supabase in prod, local disk in dev). */
 async function renderCertificatePdf(opts: {
   certId: string;
   studentName: string;
@@ -23,14 +20,15 @@ async function renderCertificatePdf(opts: {
   eventDate: string;
   verifyUrl: string;
 }): Promise<string> {
-  const filePath = path.join(CERT_DIR, `${opts.certId}.pdf`);
   const qrDataUrl = await QRCode.toDataURL(opts.verifyUrl, { margin: 1 });
   const qrImage = Buffer.from(qrDataUrl.split(",")[1], "base64");
 
-  await new Promise<void>((resolve, reject) => {
+  const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
     const doc = new PDFDocument({ layout: "landscape", size: "A4", margin: 0 });
-    const stream = fs.createWriteStream(filePath);
-    doc.pipe(stream);
+    const chunks: Buffer[] = [];
+    doc.on("data", (chunk) => chunks.push(chunk));
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
+    doc.on("error", reject);
 
     doc.rect(0, 0, doc.page.width, doc.page.height).fill("#0b0b14");
     doc.rect(24, 24, doc.page.width - 48, doc.page.height - 48).lineWidth(1.5).stroke("#7c5cff");
@@ -51,11 +49,9 @@ async function renderCertificatePdf(opts: {
     doc.fillColor("#6b6b7d").fontSize(9).text("Verify at " + opts.verifyUrl, 40, doc.page.height - 55);
 
     doc.end();
-    stream.on("finish", () => resolve());
-    stream.on("error", reject);
   });
 
-  return filePath;
+  return saveCertificatePdf(`${opts.certId}.pdf`, pdfBuffer);
 }
 
 /**
@@ -80,7 +76,7 @@ certificatesRouter.post("/events/:eventId/issue-certificates", requireAuth, load
   for (const attendance of eligible) {
     const certId = newCertId();
     const verifyUrl = `${webOrigin}/verify/${certId}`;
-    const pdfPath = await renderCertificatePdf({
+    const pdfUrl = await renderCertificatePdf({
       certId,
       studentName: attendance.user.name,
       eventTitle: event.title,
@@ -93,7 +89,7 @@ certificatesRouter.post("/events/:eventId/issue-certificates", requireAuth, load
         userId: attendance.userId,
         eventId: event.id,
         attendanceId: attendance.id,
-        pdfUrl: `/uploads/certificates/${path.basename(pdfPath)}`,
+        pdfUrl,
       },
     });
     issued.push(cert);

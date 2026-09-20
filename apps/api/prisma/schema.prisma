@@ -1,16 +1,17 @@
 // Konvene — core data model
-// Dev uses SQLite for zero-setup local runs. Prisma enums aren't supported on
-// SQLite, so status/role fields below are String — valid values are documented
-// per field and enforced by zod schemas in the route layer. Switch the
-// datasource to "postgresql" + DATABASE_URL for prod (Supabase/Neon); at that
-// point these Strings can be promoted back to native Prisma enums 1:1.
+// Runs on Postgres (Supabase in prod). Status/role fields are plain String
+// rather than native Prisma enums — this schema started on SQLite (which
+// doesn't support enums) and the String fields were kept for a clean 1:1
+// diff; valid values are documented per field and enforced by zod schemas in
+// the route layer. Promoting to native Postgres enums is a safe follow-up,
+// not required for correctness.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
