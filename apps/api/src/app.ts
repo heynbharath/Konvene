@@ -11,6 +11,7 @@ import { checkinRouter } from "./routes/checkin";
 import { facultyRouter } from "./routes/faculty";
 import { certificatesRouter } from "./routes/certificates";
 import { statsRouter } from "./routes/stats";
+import { academicsRouter } from "./routes/academics";
 
 export const app = express();
 
@@ -35,3 +36,4 @@ app.use("/checkin", checkinRouter);
 app.use("/faculty", facultyRouter);
 app.use("/", certificatesRouter); // exposes /events/:id/issue-certificates and /verify/:certId
 app.use("/", statsRouter); // exposes /stats
+app.use("/", academicsRouter); // exposes /departments and /subjects

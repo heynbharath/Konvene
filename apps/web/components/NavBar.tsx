@@ -6,12 +6,13 @@ import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 export function NavBar() {
-  const { user, logout } = useAuth();
+  const { user, logout, hasRole } = useAuth();
   const pathname = usePathname();
 
   const links = [
     { href: "/", label: "Discover" },
     ...(user ? [{ href: "/tickets", label: "Tickets" }, { href: "/faculty", label: "Faculty" }] : []),
+    ...(hasRole("ADMIN") ? [{ href: "/admin/clubs/new", label: "New Club" }] : []),
   ];
 
   return (

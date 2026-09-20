@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
+import { Plus, Pencil } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { api, ApiError } from "@/lib/api";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -45,6 +47,9 @@ export default function ClubDashboardPage() {
   const [scanResult, setScanResult] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResultRow[]>([]);
+  const [memberEmail, setMemberEmail] = useState("");
+  const [memberRole, setMemberRole] = useState<"CORE_TEAM" | "VOLUNTEER">("VOLUNTEER");
+  const [memberMsg, setMemberMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -110,24 +115,57 @@ export default function ClubDashboardPage() {
     api<ClubDetail>(`/clubs/${slug}`, { token }).then(setClub);
   }
 
+  async function addMember(e: React.FormEvent) {
+    e.preventDefault();
+    if (!token) return;
+    setMemberMsg(null);
+    try {
+      const res = await api<{ added: string; role: string }>(`/clubs/${club!.id}/members`, {
+        method: "POST",
+        token,
+        body: { email: memberEmail, role: memberRole },
+      });
+      setMemberMsg(`Added ${res.added} as ${res.role.replace("_", " ").toLowerCase()}.`);
+      setMemberEmail("");
+    } catch (err) {
+      setMemberMsg(err instanceof ApiError ? err.message : "Could not add member.");
+    }
+  }
+
   return (
     <div>
-      <h1 className="mb-1 font-display text-3xl font-semibold italic">
-        {club.name} <span className="not-italic text-inkSoft">/ Dashboard</span>
-      </h1>
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-3xl font-semibold italic">
+          {club.name} <span className="not-italic text-inkSoft">/ Dashboard</span>
+        </h1>
+        <Link href={`/club/${slug}/events/new`} className="btn-signal flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wide">
+          <Plus className="h-3.5 w-3.5" /> New event
+        </Link>
+      </div>
       <div className="mb-8 mt-4 flex flex-wrap items-center gap-3">
-        <select
-          value={eventId}
-          onChange={(e) => setEventId(e.target.value)}
-          className="border-[1.5px] border-ink bg-paper px-3.5 py-2.5 text-sm outline-none focus:bg-paperAlt"
-        >
-          {club.events.map((e) => <option key={e.id} value={e.id}>{e.title}</option>)}
-        </select>
-        {selectedEvent && <StatusBadge status={selectedEvent.status} />}
-        {selectedEvent?.status === "DRAFT" && (
-          <button onClick={submitForApproval} className="btn-signal rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wide">
-            Submit for approval
-          </button>
+        {club.events.length === 0 ? (
+          <p className="text-inkSoft">No events yet — create your first one.</p>
+        ) : (
+          <>
+            <select
+              value={eventId}
+              onChange={(e) => setEventId(e.target.value)}
+              className="border-[1.5px] border-ink bg-paper px-3.5 py-2.5 text-sm outline-none focus:bg-paperAlt"
+            >
+              {club.events.map((e) => <option key={e.id} value={e.id}>{e.title}</option>)}
+            </select>
+            {selectedEvent && <StatusBadge status={selectedEvent.status} />}
+            {(selectedEvent?.status === "DRAFT" || selectedEvent?.status === "REJECTED") && (
+              <Link href={`/club/${slug}/events/${selectedEvent.slug}/edit`} className="btn-outline flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wide">
+                <Pencil className="h-3.5 w-3.5" /> Edit
+              </Link>
+            )}
+            {selectedEvent?.status === "DRAFT" && (
+              <button onClick={submitForApproval} className="btn-signal rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wide">
+                Submit for approval
+              </button>
+            )}
+          </>
         )}
       </div>
 
@@ -206,6 +244,28 @@ export default function ClubDashboardPage() {
             ))}
           </div>
         </div>
+      </div>
+
+      <div className="card mt-6 p-6">
+        <h2 className="mb-1 font-display text-xl font-semibold italic">Add a team member</h2>
+        <p className="mb-4 text-sm text-inkSoft">They need a Konvene account already — just their email.</p>
+        <form onSubmit={addMember} className="flex flex-wrap items-center gap-3">
+          <input
+            type="email" required placeholder="member@college.edu" value={memberEmail}
+            onChange={(e) => setMemberEmail(e.target.value)}
+            className="flex-1 border-[1.5px] border-ink bg-paper px-3.5 py-2.5 text-sm outline-none focus:bg-paperAlt"
+          />
+          <select
+            value={memberRole}
+            onChange={(e) => setMemberRole(e.target.value as "CORE_TEAM" | "VOLUNTEER")}
+            className="border-[1.5px] border-ink bg-paper px-3.5 py-2.5 text-sm outline-none focus:bg-paperAlt"
+          >
+            <option value="VOLUNTEER">Volunteer</option>
+            <option value="CORE_TEAM">Core team</option>
+          </select>
+          <button className="btn-signal rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-wide">Add</button>
+        </form>
+        {memberMsg && <p className="mt-3 text-sm font-medium">{memberMsg}</p>}
       </div>
     </div>
   );

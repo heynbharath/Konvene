@@ -96,6 +96,65 @@ eventsRouter.post("/", requireAuth, loadRoles, async (req: AuthedRequest, res) =
   res.status(201).json(event);
 });
 
+const updateEventSchema = createEventSchema.omit({ clubId: true }).partial().extend({
+  ticketTypes: z.array(z.object({ name: z.string(), capacity: z.number().int().positive() })).min(1).optional(),
+});
+
+/**
+ * Edits an event's core fields (and, if provided, fully replaces its ticket
+ * types and form schema). Only allowed while the event hasn't been sent
+ * anywhere yet (DRAFT) or was sent back for changes (REJECTED) — once it's
+ * PENDING_APPROVAL or PUBLISHED, editing would invalidate what the
+ * coordinator already reviewed or what attendees already registered against.
+ */
+eventsRouter.patch("/:id", requireAuth, loadRoles, async (req: AuthedRequest, res) => {
+  const parsed = updateEventSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+  const event = await prisma.event.findUnique({ where: { id: req.params.id } });
+  if (!event) return res.status(404).json({ error: "Event not found" });
+  if (!hasScopedRole(req.roles, "CLUB_HEAD", "CLUB", event.clubId)) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+  if (event.status !== "DRAFT" && event.status !== "REJECTED") {
+    return res.status(409).json({ error: `Cannot edit an event in status ${event.status}` });
+  }
+
+  const { ticketTypes, formFields, startAt, endAt, ...rest } = parsed.data;
+
+  const updated = await prisma.$transaction(async (tx) => {
+    if (ticketTypes) {
+      const existingTypes = await tx.ticketType.findMany({ where: { eventId: event.id } });
+      const inUse = await tx.registration.count({ where: { ticketTypeId: { in: existingTypes.map((t) => t.id) } } });
+      if (inUse > 0) throw new Error("TICKET_TYPES_IN_USE");
+      await tx.ticketType.deleteMany({ where: { eventId: event.id } });
+      await tx.ticketType.createMany({ data: ticketTypes.map((t) => ({ ...t, eventId: event.id })) });
+    }
+    if (formFields) {
+      await tx.eventForm.upsert({
+        where: { eventId: event.id },
+        create: { eventId: event.id, schemaJson: JSON.stringify(formFields) },
+        update: { schemaJson: JSON.stringify(formFields) },
+      });
+    }
+    return tx.event.update({
+      where: { id: event.id },
+      data: {
+        ...rest,
+        ...(startAt ? { startAt: new Date(startAt) } : {}),
+        ...(endAt ? { endAt: new Date(endAt) } : {}),
+      },
+      include: { ticketTypes: true, form: true },
+    });
+  }).catch((err) => {
+    if (err instanceof Error && err.message === "TICKET_TYPES_IN_USE") return null;
+    throw err;
+  });
+
+  if (!updated) return res.status(409).json({ error: "Can't replace ticket types that already have registrations" });
+  res.json(updated);
+});
+
 /** Club head sends a DRAFT event to their Faculty Coordinator for approval. */
 eventsRouter.post("/:id/submit-for-approval", requireAuth, loadRoles, async (req: AuthedRequest, res) => {
   const event = await prisma.event.findUnique({ where: { id: req.params.id } });

@@ -53,24 +53,66 @@ const createClubSchema = z.object({
   description: z.string().optional(),
   departmentId: z.string(),
   facultyAdvisorName: z.string().optional(),
-  headUserId: z.string(),
+  headEmail: z.string().email(),
 });
 
+/**
+ * Admin-only. The new head is identified by email rather than id — they must
+ * already have a Konvene account (there's no user directory in the UI yet,
+ * so email is the only identifier an admin realistically has on hand).
+ */
 clubsRouter.post("/", requireAuth, loadRoles, requireRole("ADMIN"), async (req, res) => {
   const parsed = createClubSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-  const { headUserId, ...data } = parsed.data;
+  const { headEmail, ...data } = parsed.data;
+
+  const headUser = await prisma.user.findUnique({ where: { email: headEmail } });
+  if (!headUser) return res.status(404).json({ error: "No Konvene account with that email yet — they need to sign up first." });
+
+  const existingSlug = await prisma.club.findUnique({ where: { slug: data.slug } });
+  if (existingSlug) return res.status(409).json({ error: "That club slug is already taken" });
 
   const club = await prisma.club.create({
     data: {
       ...data,
-      members: { create: { userId: headUserId, role: "CLUB_HEAD" } },
+      members: { create: { userId: headUser.id, role: "CLUB_HEAD" } },
     },
   });
 
   await prisma.userRoleAssignment.create({
-    data: { userId: headUserId, role: "CLUB_HEAD", scopeType: "CLUB", scopeId: club.id },
+    data: { userId: headUser.id, role: "CLUB_HEAD", scopeType: "CLUB", scopeId: club.id },
   });
 
   res.status(201).json(club);
+});
+
+const addMemberSchema = z.object({
+  email: z.string().email(),
+  role: z.enum(["CORE_TEAM", "VOLUNTEER"]),
+});
+
+/** Club head (or admin) adds an existing user as core team or volunteer for their club. */
+clubsRouter.post("/:id/members", requireAuth, loadRoles, async (req: AuthedRequest, res) => {
+  const parsed = addMemberSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+  const club = await prisma.club.findUnique({ where: { id: req.params.id } });
+  if (!club) return res.status(404).json({ error: "Club not found" });
+  if (!hasScopedRole(req.roles, "CLUB_HEAD", "CLUB", club.id)) {
+    return res.status(403).json({ error: "Only this club's head (or an admin) can add members" });
+  }
+
+  const { email, role } = parsed.data;
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) return res.status(404).json({ error: "No Konvene account with that email yet — they need to sign up first." });
+
+  const existing = await prisma.clubMember.findUnique({ where: { clubId_userId: { clubId: club.id, userId: user.id } } });
+  if (existing) return res.status(409).json({ error: `${user.name} is already a member of this club` });
+
+  await prisma.$transaction([
+    prisma.clubMember.create({ data: { clubId: club.id, userId: user.id, role } }),
+    prisma.userRoleAssignment.create({ data: { userId: user.id, role, scopeType: "CLUB", scopeId: club.id } }),
+  ]);
+
+  res.status(201).json({ added: user.name, role });
 });
