@@ -62,10 +62,14 @@ export function Footer() {
           <span>© 2026 Konvene. Not a college project.</span>
           <span className="font-mono uppercase tracking-widest">Every ticket is real. Every scan is checked.</span>
         </div>
-        <div className="mt-4 text-center text-xs text-inkSoft">
-          Made by <span className="font-semibold text-ink">Sunaina Mohapatra</span>
-          <span className="font-mono"> · ENG24CT0058</span>
-        </div>
+      </div>
+
+      <div className="border-t-[1.5px] border-ink bg-ink py-12 text-center">
+        <p className="font-mono text-xs uppercase tracking-[0.3em] text-paper/50">Made with ♥ for</p>
+        <p className="mt-2 font-display text-4xl font-semibold italic text-paper sm:text-6xl">
+          Sunaina Mohapatra
+        </p>
+        <p className="mt-3 font-mono text-sm tracking-widest text-signal">ENG24CT0058</p>
       </div>
     </footer>
   );
