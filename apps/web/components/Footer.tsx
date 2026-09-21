@@ -65,7 +65,7 @@ export function Footer() {
       </div>
 
       <div className="border-t-[1.5px] border-ink bg-ink py-12 text-center">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-paper/50">Made with ♥ for</p>
+        <p className="font-mono text-xs uppercase tracking-[0.3em] text-paper/50">Built by</p>
         <p className="mt-2 font-display text-4xl font-semibold italic text-paper sm:text-6xl">
           Sunaina Mohapatra
         </p>
