@@ -63,14 +63,6 @@ export function Footer() {
           <span className="font-mono uppercase tracking-widest">Every ticket is real. Every scan is checked.</span>
         </div>
       </div>
-
-      <div className="border-t-[1.5px] border-ink bg-ink py-12 text-center">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-paper/50">Built by</p>
-        <p className="mt-2 font-display text-4xl font-semibold italic text-paper sm:text-6xl">
-          Sunaina Mohapatra
-        </p>
-        <p className="mt-3 font-mono text-sm tracking-widest text-signal">ENG24CT0058</p>
-      </div>
     </footer>
   );
 }
