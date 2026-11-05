@@ -56,40 +56,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const storedToken = typeof window !== "undefined" ? localStorage.getItem("konvene_auth_token") : null;
+    let isMounted = true;
+    let sub: any = null;
 
-    supabaseBrowser.auth
-      .getSession()
-      .then(({ data }) => {
-        const accessToken = data.session?.access_token || storedToken || null;
-        setToken(accessToken);
-        if (accessToken) fetchUser(accessToken).finally(() => setLoading(false));
-        else setLoading(false);
-      })
-      .catch(() => {
-        if (storedToken) {
-          setToken(storedToken);
-          fetchUser(storedToken).finally(() => setLoading(false));
-        } else {
-          setLoading(false);
+    const storedToken =
+      typeof window !== "undefined"
+        ? localStorage.getItem("konvene_auth_token")
+        : null;
+
+    if (storedToken) {
+      setToken(storedToken);
+      fetchUser(storedToken).finally(() => {
+        if (isMounted) setLoading(false);
+      });
+    } else {
+      setLoading(false);
+    }
+
+    try {
+      const res = supabaseBrowser.auth.onAuthStateChange((event, session) => {
+        if (!isMounted) return;
+        if (event === "SIGNED_OUT") {
+          setToken(null);
+          setUser(null);
+          return;
+        }
+        const localToken =
+          typeof window !== "undefined"
+            ? localStorage.getItem("konvene_auth_token")
+            : null;
+        const accessToken = session?.access_token || localToken || null;
+        if (accessToken) {
+          setToken(accessToken);
+          fetchUser(accessToken);
         }
       });
+      sub = res?.data?.subscription;
+    } catch (e) {
+      console.warn("Supabase auth listener not active:", e);
+    }
 
-    const { data: sub } = supabaseBrowser.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT") {
-        setToken(null);
-        setUser(null);
-        return;
-      }
-      const localToken = typeof window !== "undefined" ? localStorage.getItem("konvene_auth_token") : null;
-      const accessToken = session?.access_token || localToken || null;
-      if (accessToken) {
-        setToken(accessToken);
-        fetchUser(accessToken);
-      }
-    });
-
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      try {
+        sub?.unsubscribe?.();
+      } catch {}
+    };
   }, [fetchUser]);
 
   async function login(email: string, password: string) {

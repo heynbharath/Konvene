@@ -225,7 +225,53 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
     });
   }
 
-  // 5. /api/ai/status
+  // 5. /api/clubs
+  if (path === "clubs") {
+    return NextResponse.json([
+      { id: "club-gdsc", name: "Google Developer Student Club", slug: "gdsc", facultyAdvisor: "Dr. Rao" },
+      { id: "club-acm", name: "ACM Student Chapter", slug: "acm", facultyAdvisor: "Prof. Arvind" },
+      { id: "club-cultural", name: "Campus Cultural Forum", slug: "cultural-forum", facultyAdvisor: "Dr. Shalini" },
+      { id: "club-placement", name: "Placement & Training Cell", slug: "placement-cell", facultyAdvisor: "Prof. Suresh" },
+    ]);
+  }
+
+  if (path.startsWith("clubs/") && slug.length === 2) {
+    const clubSlug = slug[1];
+    return NextResponse.json({
+      id: "club-" + clubSlug,
+      name: clubSlug.toUpperCase() + " Club",
+      slug: clubSlug,
+      facultyAdvisor: "Dr. Rao",
+      events: EVENTS_CATALOG,
+    });
+  }
+
+  // 6. /api/stats
+  if (path === "stats") {
+    return NextResponse.json({
+      clubs: 12,
+      publishedEvents: 8,
+      registrations: 248,
+      certificates: 185,
+    });
+  }
+
+  // 7. /api/departments & /api/subjects
+  if (path === "departments") {
+    return NextResponse.json([
+      { id: "dept-eng", name: "School of Engineering", code: "ENG" },
+      { id: "dept-mgmt", name: "School of Management", code: "MGMT" },
+    ]);
+  }
+
+  if (path === "subjects") {
+    return NextResponse.json([
+      { id: "subj-cs301", name: "Compiler Design", code: "CS301", semester: 5 },
+      { id: "subj-cs302", name: "Operating Systems", code: "CS302", semester: 5 },
+    ]);
+  }
+
+  // 8. /api/ai/status
   if (path === "ai/status") {
     return NextResponse.json({
       status: "online",

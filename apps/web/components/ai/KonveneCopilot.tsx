@@ -40,7 +40,7 @@ const INITIAL_MESSAGE: Message = {
   content: `Hey! I'm **Konvene Scout**, your campus operating system copilot. 
 
 I can find hackathons, issue signed HMAC-SHA256 ticket passes, verify CS301 faculty attendance credit, draft events for your club, or look up active societies. What are we building today?`,
-  timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+  timestamp: "Just now",
 };
 
 export function KonveneCopilot() {
@@ -111,7 +111,7 @@ export function KonveneCopilot() {
       id: "usr-" + Date.now(),
       role: "user",
       content: text,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      timestamp: "Just now",
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -143,7 +143,7 @@ export function KonveneCopilot() {
         content: data.message || "Done!",
         reasoning: data.reasoning,
         actionCards: data.actionCards || [],
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        timestamp: "Just now",
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
@@ -157,7 +157,7 @@ export function KonveneCopilot() {
         content: `⚡ **Scout Update**: ${
           err.message || "Campus server request completed."
         }\n\nYou can explore active events on the [Events page](/events) or view your credentials on [Verify](/verify).`,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        timestamp: "Just now",
       };
       setMessages((prev) => [...prev, fallbackMsg]);
     } finally {

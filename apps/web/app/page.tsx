@@ -38,7 +38,14 @@ export default function DiscoverPage() {
     if (category) params.set("category", category);
     if (query) params.set("q", query);
     api<EventCardData[]>(`/events${params.toString() ? `?${params}` : ""}`)
-      .then(setEvents)
+      .then((data) => {
+        if (Array.isArray(data)) setEvents(data);
+        else setEvents([]);
+      })
+      .catch((err) => {
+        console.warn("Could not load events:", err);
+        setEvents([]);
+      })
       .finally(() => setLoading(false));
   }, [category, query]);
 

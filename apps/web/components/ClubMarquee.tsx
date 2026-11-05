@@ -12,10 +12,14 @@ export function ClubMarquee() {
   const [clubs, setClubs] = useState<Club[]>([]);
 
   useEffect(() => {
-    api<Club[]>("/clubs").then(setClubs).catch(() => {});
+    api<Club[]>("/clubs")
+      .then((data) => {
+        if (Array.isArray(data)) setClubs(data);
+      })
+      .catch(() => {});
   }, []);
 
-  if (clubs.length === 0) return null;
+  if (!Array.isArray(clubs) || clubs.length === 0) return null;
 
   const track = [...clubs, ...clubs, ...clubs, ...clubs];
 

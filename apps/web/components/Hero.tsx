@@ -30,7 +30,7 @@ export function Hero() {
   const secondaryHref = firstClub ? `/club/${firstClub.slug}/dashboard` : "/tickets";
   const secondaryLabel = firstClub ? `${firstClub.name} dashboard` : "My tickets";
 
-  const statItems = stats
+  const statItems = stats && typeof stats.clubs === "number"
     ? [
         { label: "Clubs live", value: stats.clubs },
         { label: "Events running", value: stats.publishedEvents },
@@ -60,7 +60,7 @@ export function Hero() {
           transition={{ type: "spring", stiffness: 200, damping: 12 }}
           className="stamp mx-auto mb-6 inline-flex items-center gap-2 rounded-full border-[1.5px] border-ink bg-acid px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-ink"
         >
-          {user ? `Welcome back, ${user.name.split(" ")[0]}` : "Not another event app"}
+          {user ? `Welcome back, ${user.name ? user.name.split(" ")[0] : "there"}` : "Not another event app"}
         </motion.div>
 
         <motion.h1
