@@ -82,6 +82,19 @@ export function NavBar() {
         </div>
 
         <div className="flex items-center gap-3 text-sm">
+          <button
+            onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}
+            className="hidden sm:flex items-center gap-1.5 rounded-full border border-ink bg-paperAlt px-2.5 py-1 text-xs font-bold text-ink hover:bg-paper active:scale-95 transition-all shadow-hard-sm"
+            title="Open Konvene Scout AI (⌘K)"
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-signal opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-signal" />
+            </span>
+            <span>Scout AI</span>
+            <span className="font-mono text-[10px] text-inkSoft">⌘K</span>
+          </button>
+
           {user ? (
             <>
               <span className="hidden font-medium text-inkSoft sm:inline">{user.name}</span>

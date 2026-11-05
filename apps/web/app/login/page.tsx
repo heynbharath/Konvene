@@ -85,9 +85,28 @@ export default function LoginPage() {
         </p>
 
         <div className="mt-6 border-[1.5px] border-dashed border-ink/40 bg-paperAlt p-4 font-mono text-[11px] text-inkSoft">
-          <p className="mb-1.5 font-bold uppercase tracking-wide text-ink">Demo accounts</p>
-          <p>admin · faculty · clubhead · student1 · student2 @konvene.dev</p>
-          <p className="mt-1">Password: password123</p>
+          <p className="mb-2 font-bold uppercase tracking-wide text-ink">1-Click Demo Login</p>
+          <div className="flex flex-wrap gap-1.5 mb-2.5">
+            {[
+              { label: "⚡ Admin", email: "admin@konvene.dev" },
+              { label: "🎓 Faculty", email: "faculty@konvene.dev" },
+              { label: "🎪 Club Head", email: "clubhead@konvene.dev" },
+              { label: "🎒 Student", email: "student1@konvene.dev" },
+            ].map((acc) => (
+              <button
+                key={acc.email}
+                type="button"
+                onClick={() => {
+                  setEmail(acc.email);
+                  setPassword("password123");
+                }}
+                className="rounded border border-ink bg-paper px-2 py-1 font-bold text-ink shadow-hard-sm hover:bg-paperAlt active:translate-y-0.5 transition-transform"
+              >
+                {acc.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-inkSoft">Password: password123 (auto-fills on click)</p>
         </div>
       </motion.div>
     </div>

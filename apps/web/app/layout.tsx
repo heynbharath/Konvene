@@ -5,6 +5,7 @@ import { AuthProvider } from "@/lib/auth";
 import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
 import { CustomCursor } from "@/components/CustomCursor";
+import { KonveneCopilot } from "@/components/ai/KonveneCopilot";
 
 const display = Fraunces({
   subsets: ["latin"],
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <NavBar />
               <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">{children}</main>
               <Footer />
+              <KonveneCopilot />
             </div>
           </div>
         </AuthProvider>

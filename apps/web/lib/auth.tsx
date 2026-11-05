@@ -56,18 +56,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    supabaseBrowser.auth.getSession().then(({ data }) => {
-      const accessToken = data.session?.access_token ?? null;
-      setToken(accessToken);
-      if (accessToken) fetchUser(accessToken).finally(() => setLoading(false));
-      else setLoading(false);
-    });
+    const storedToken = typeof window !== "undefined" ? localStorage.getItem("konvene_auth_token") : null;
 
-    const { data: sub } = supabaseBrowser.auth.onAuthStateChange((_event, session) => {
-      const accessToken = session?.access_token ?? null;
-      setToken(accessToken);
-      if (accessToken) fetchUser(accessToken);
-      else setUser(null);
+    supabaseBrowser.auth
+      .getSession()
+      .then(({ data }) => {
+        const accessToken = data.session?.access_token || storedToken || null;
+        setToken(accessToken);
+        if (accessToken) fetchUser(accessToken).finally(() => setLoading(false));
+        else setLoading(false);
+      })
+      .catch(() => {
+        if (storedToken) {
+          setToken(storedToken);
+          fetchUser(storedToken).finally(() => setLoading(false));
+        } else {
+          setLoading(false);
+        }
+      });
+
+    const { data: sub } = supabaseBrowser.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
+        setToken(null);
+        setUser(null);
+        return;
+      }
+      const localToken = typeof window !== "undefined" ? localStorage.getItem("konvene_auth_token") : null;
+      const accessToken = session?.access_token || localToken || null;
+      if (accessToken) {
+        setToken(accessToken);
+        fetchUser(accessToken);
+      }
     });
 
     return () => sub.subscription.unsubscribe();
@@ -78,7 +97,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       method: "POST",
       body: { email, password },
     });
-    await supabaseBrowser.auth.setSession({ access_token: res.token, refresh_token: res.refreshToken });
+    try {
+      await supabaseBrowser.auth.setSession({ access_token: res.token, refresh_token: res.refreshToken });
+    } catch {}
+    setToken(res.token);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("konvene_auth_token", res.token);
+    }
     await fetchUser(res.token);
   }
 
@@ -87,7 +112,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       method: "POST",
       body: { name, email, password, usn },
     });
-    await supabaseBrowser.auth.setSession({ access_token: res.token, refresh_token: res.refreshToken });
+    try {
+      await supabaseBrowser.auth.setSession({ access_token: res.token, refresh_token: res.refreshToken });
+    } catch {}
+    setToken(res.token);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("konvene_auth_token", res.token);
+    }
     await fetchUser(res.token);
   }
 
@@ -100,7 +131,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
-    await supabaseBrowser.auth.signOut();
+    try {
+      await supabaseBrowser.auth.signOut();
+    } catch {}
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("konvene_auth_token");
+    }
     setToken(null);
     setUser(null);
   }
