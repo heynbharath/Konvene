@@ -16,6 +16,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import { api } from "@/lib/api";
 import { sounds } from "./sound";
 import { CommandPalette } from "./CommandPalette";
 import { InteractiveEventCard } from "./cards/InteractiveEventCard";
@@ -118,30 +119,22 @@ export function KonveneCopilot() {
     setLoading(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
       const payloadMessages = [...messages, userMsg].map((m) => ({
         role: m.role,
         content: m.content,
       }));
 
-      const res = await fetch(`${apiUrl}/ai/chat`, {
+      const data = await api("/ai/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           messages: payloadMessages,
           user: {
             name: "Student Attendee",
             email: "student@konvene.dev",
             usn: "ENG24CT0058",
           },
-        }),
+        },
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to contact Konvene AI");
-      }
 
       sounds.playSuccess();
       const assistantMsg: Message = {

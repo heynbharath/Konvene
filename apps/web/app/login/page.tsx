@@ -23,8 +23,8 @@ export default function LoginPage() {
     try {
       await login(email, password);
       router.push("/");
-    } catch {
-      setError("Invalid email or password.");
+    } catch (err: any) {
+      setError(err?.message || "Invalid email or password.");
     } finally {
       setBusy(false);
     }

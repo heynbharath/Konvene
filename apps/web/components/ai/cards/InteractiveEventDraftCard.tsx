@@ -3,6 +3,7 @@
 import { useState } from "react";
 import confetti from "canvas-confetti";
 import { Sparkles, Calendar, MapPin, Users, CheckCircle2, Send } from "lucide-react";
+import { api } from "@/lib/api";
 import { sounds } from "../sound";
 
 interface DraftData {
@@ -29,14 +30,12 @@ export function InteractiveEventDraftCard({ draft }: { draft: DraftData }) {
     sounds.playPop();
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      await fetch(`${apiUrl}/ai/action`, {
+      await api("/ai/action", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           action: "publish_draft",
           payload: draft,
-        }),
+        },
       });
 
       sounds.playSuccess();

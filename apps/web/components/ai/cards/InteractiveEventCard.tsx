@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 import { Calendar, MapPin, Sparkles, ArrowRight, CheckCircle2, GraduationCap } from "lucide-react";
+import { api } from "@/lib/api";
 import { sounds } from "../sound";
 import { InteractiveTicketCard } from "./InteractiveTicketCard";
 
@@ -47,11 +48,9 @@ export function InteractiveEventCard({ event }: { event: EventItem }) {
     sounds.playPop();
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-      const res = await fetch(`${apiUrl}/ai/action`, {
+      const data = await api("/ai/action", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           action: "rsvp",
           payload: {
             eventId: event.id,
@@ -60,10 +59,9 @@ export function InteractiveEventCard({ event }: { event: EventItem }) {
             startAt: event.startAt,
             attendeeName: "Student Attendee (ENG24CT0058)",
           },
-        }),
+        },
       });
 
-      const data = await res.json();
       if (data.ok && data.ticket) {
         sounds.playSuccess();
         confetti({
