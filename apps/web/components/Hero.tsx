@@ -60,7 +60,7 @@ export function Hero() {
           transition={{ type: "spring", stiffness: 200, damping: 12 }}
           className="stamp mx-auto mb-6 inline-flex items-center gap-2 rounded-full border-[1.5px] border-ink bg-acid px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-ink"
         >
-          {user ? `Welcome back, ${user.name ? user.name.split(" ")[0] : "there"}` : "Not another event app"}
+          {user ? `Welcome back, ${user.name ? user.name.split(" ")[0] : "there"}` : "Official Campus Academic & Events Portal"}
         </motion.div>
 
         <motion.h1

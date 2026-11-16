@@ -88,10 +88,11 @@ export default function LoginPage() {
           <p className="mb-2 font-bold uppercase tracking-wide text-ink">1-Click Demo Login</p>
           <div className="flex flex-wrap gap-1.5 mb-2.5">
             {[
-              { label: "⚡ Admin", email: "admin@konvene.dev" },
-              { label: "🎓 Faculty", email: "faculty@konvene.dev" },
-              { label: "🎪 Club Head", email: "clubhead@konvene.dev" },
-              { label: "🎒 Student", email: "student1@konvene.dev" },
+              { label: "⚡ Dean / Admin", email: "admin@konvene.dev" },
+              { label: "🎓 Dr. Rao (Faculty)", email: "faculty@konvene.dev" },
+              { label: "🎪 Priya (Club Head)", email: "clubhead@konvene.dev" },
+              { label: "🎒 Arjun (1CS21CS001)", email: "student1@konvene.dev" },
+              { label: "🎒 Meera (1CS21CS002)", email: "student2@konvene.dev" },
             ].map((acc) => (
               <button
                 key={acc.email}

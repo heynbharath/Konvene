@@ -85,6 +85,12 @@ export function EventCard({ slug, title, category, clubName, startAt, venue, reg
             </div>
           </div>
 
+          {(category === "HACKATHON" || category === "WORKSHOP" || category === "TALK" || category === "TECHNICAL" || category === "CONFERENCE") && (
+            <div className="mt-3 inline-flex items-center gap-1.5 font-mono text-[10px] font-bold text-[#78350F] bg-[#FFFBEB] px-2.5 py-0.5 rounded border border-[#8C6D3B]/40">
+              <span>🎓 CS301 Attendance Credit (Dr. Rao)</span>
+            </div>
+          )}
+
           <div className="mt-4 flex items-center justify-between border-t-[1.5px] border-dashed border-ink/30 pt-3">
             <div className="flex items-center gap-1.5 font-mono text-xs text-inkSoft">
               <Users className="h-3.5 w-3.5" />

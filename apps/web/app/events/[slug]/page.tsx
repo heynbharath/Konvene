@@ -22,6 +22,7 @@ interface FormField {
 interface EventDetail {
   id: string;
   title: string;
+  slug?: string;
   description: string;
   category: string;
   venue: string;
@@ -113,6 +114,65 @@ export default function EventDetailPage() {
             <div className="truncate text-sm font-semibold">{item.value}</div>
           </div>
         ))}
+      </div>
+
+      {event.slug === "dsu-mun-cope-3" && (
+        <div className="mb-8 border-[2px] border-ink bg-[#15130F] text-paper p-6 shadow-hard space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-paper/20 pb-3">
+            <div>
+              <span className="font-mono text-[10px] text-acid uppercase font-bold tracking-widest">
+                DSU COPE MUN III · "A Pass at the Infinite"
+              </span>
+              <h3 className="font-display text-xl font-bold text-white">
+                Flagship Model United Nations Committees
+              </h3>
+            </div>
+            <span className="bg-acid text-ink font-mono text-xs font-bold px-3 py-1 rounded-full uppercase">
+              Prize Pool: ₹18,000+
+            </span>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 text-xs font-mono">
+            <div className="bg-[#24211A] border border-paper/20 p-3 rounded">
+              <span className="text-acid font-bold">1. AIPPM (All India Political Parties Meet)</span>
+              <p className="text-paper/70 text-[11px] mt-1 font-sans">
+                Agenda: One Nation, One Election: Timely & Inclusive Elections and Administrative Reforms.
+              </p>
+            </div>
+            <div className="bg-[#24211A] border border-paper/20 p-3 rounded">
+              <span className="text-acid font-bold">2. UNCSW (Status of Women)</span>
+              <p className="text-paper/70 text-[11px] mt-1 font-sans">
+                Agenda: Empowerment of Women through Improvements in Gender Equality & Economic Independence.
+              </p>
+            </div>
+            <div className="bg-[#24211A] border border-paper/20 p-3 rounded">
+              <span className="text-acid font-bold">3. UNODC (Drugs & Crime - Double Delegate)</span>
+              <p className="text-paper/70 text-[11px] mt-1 font-sans">
+                Agenda: Preventing human and drug trafficking through international cross-border cooperation.
+              </p>
+            </div>
+            <div className="bg-[#24211A] border border-paper/20 p-3 rounded">
+              <span className="text-acid font-bold">4. IPC (International Press Corps)</span>
+              <p className="text-paper/70 text-[11px] mt-1 font-sans">
+                Journalism, live committee investigation, press conferences, and editorial reporting.
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-2 flex items-center justify-between text-xs text-paper/70 font-mono">
+            <span>Coordinators: Dr. Seema Tharannum & Dr. Sai Prasad</span>
+            <span>Signatory: Dr. Udaya Kumar Reddy K. R. (Dean)</span>
+          </div>
+        </div>
+      )}
+
+      <div className="mb-8 border-[1.5px] border-[#8C6D3B] bg-[#FFFBEB] p-4 rounded text-xs text-[#78350F]">
+        <p className="font-bold font-mono uppercase tracking-wider flex items-center gap-1.5 text-sm mb-1">
+          🎓 Department Academic Attendance Notice
+        </p>
+        <p className="leading-relaxed">
+          Gate check-in at this event is officially accredited for <strong>{event.slug === "dsu-mun-cope-3" ? "HU301: Professional Communication & Governance" : "CS301: Compiler Design (Dr. Rao)"}</strong>. Upon scanning your HMAC pass at the door, lecture attendance credit is automatically updated on your live attendance register.
+        </p>
       </div>
 
       <p className="mb-10 whitespace-pre-wrap text-base leading-relaxed text-inkSoft">{event.description}</p>

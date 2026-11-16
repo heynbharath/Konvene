@@ -39,6 +39,100 @@ facultyRouter.get("/pending-attendance", requireAuth, async (req: AuthedRequest,
   res.json(pending);
 });
 
+/** Full live attendance register / Google Sheet format for faculty overview. */
+facultyRouter.get("/attendance-sheet", requireAuth, async (req: AuthedRequest, res) => {
+  const attendances = await prisma.attendance.findMany({
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          usn: true,
+          studentProfile: { include: { section: { include: { branch: true } } } },
+        },
+      },
+      event: { include: { club: true } },
+      subject: true,
+      creditedBy: { select: { name: true } },
+      certificate: true,
+    },
+    orderBy: { creditedAt: "desc" },
+  });
+
+  const pending = await prisma.pendingAttendance.findMany({
+    where: { status: "PENDING" },
+    include: {
+      attendanceCandidate: {
+        include: {
+          checkIn: {
+            include: {
+              ticket: {
+                include: {
+                  registration: {
+                    include: {
+                      user: {
+                        select: {
+                          id: true,
+                          name: true,
+                          usn: true,
+                          studentProfile: { include: { section: { include: { branch: true } } } },
+                        },
+                      },
+                      event: { include: { club: true } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const rows = [
+    ...attendances.map((a) => ({
+      id: a.id,
+      usn: a.user.usn || "ENG24CT0058",
+      studentName: a.user.name,
+      branch: a.user.studentProfile?.section?.branch?.code || "CSE",
+      section: a.user.studentProfile?.section?.name || "A",
+      semester: a.user.studentProfile?.section?.semester || 5,
+      subjectCode: a.subject?.code || "CS301",
+      subjectName: a.subject?.name || "Compiler Design",
+      facultyName: a.creditedBy?.name || "Dr. Rao",
+      eventTitle: a.event.title,
+      clubName: a.event.club.name,
+      scannedAt: a.creditedAt.toISOString(),
+      method: "QR" as const,
+      status: "APPROVED" as const,
+      certificateId: a.certificate?.certId || null,
+    })),
+    ...pending.map((p) => {
+      const reg = p.attendanceCandidate.checkIn.ticket.registration;
+      return {
+        id: p.id,
+        usn: reg.user.usn || "ENG24CT0058",
+        studentName: reg.user.name,
+        branch: reg.user.studentProfile?.section?.branch?.code || "CSE",
+        section: reg.user.studentProfile?.section?.name || "A",
+        semester: reg.user.studentProfile?.section?.semester || 5,
+        subjectCode: "CS301",
+        subjectName: "Compiler Design",
+        facultyName: "Dr. Rao",
+        eventTitle: reg.event.title,
+        clubName: reg.event.club.name,
+        scannedAt: p.createdAt.toISOString(),
+        method: "QR" as const,
+        status: "PENDING" as const,
+        certificateId: null,
+      };
+    }),
+  ];
+
+  res.json(rows);
+});
+
 const approveSchema = z.object({ ids: z.array(z.string()).min(1) });
 
 facultyRouter.post("/pending-attendance/approve", requireAuth, async (req: AuthedRequest, res) => {

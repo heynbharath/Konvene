@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel:wght@600;700;800&family=Great+Vibes&family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -107,3 +109,22 @@ input, textarea, select {
 input::placeholder, textarea::placeholder {
   color: rgba(21,19,15,0.35);
 }
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  header, footer, nav, .print\:hidden {
+    display: none !important;
+  }
+  #official-college-certificate {
+    box-shadow: none !important;
+    border: 2px solid #15130f !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    page-break-inside: avoid;
+  }
+}
+

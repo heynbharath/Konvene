@@ -7,7 +7,8 @@ import { EventCard } from "@/components/EventCard";
 import { HowItWorks } from "@/components/HowItWorks";
 import { FeatureGrid } from "@/components/FeatureGrid";
 import { ClubMarquee } from "@/components/ClubMarquee";
-import { Search } from "lucide-react";
+import { CollegeNoticeBoard } from "@/components/CollegeNoticeBoard";
+import { Search, GraduationCap } from "lucide-react";
 
 interface EventCardData {
   id: string;
@@ -52,18 +53,27 @@ export default function DiscoverPage() {
   return (
     <div>
       <Hero />
+      <CollegeNoticeBoard />
       <ClubMarquee />
       <HowItWorks />
 
       <section id="events" className="scroll-mt-24">
         <div className="mb-6 flex flex-col gap-4 border-b-[1.5px] border-ink pb-5 sm:flex-row sm:items-end sm:justify-between">
-          <h2 className="font-display text-3xl font-semibold italic">Happening now</h2>
+          <div>
+            <span className="font-mono text-xs uppercase tracking-widest text-[#8C6D3B] font-bold flex items-center gap-1.5 mb-1">
+              <GraduationCap className="h-4 w-4" /> Academic Year 2026-27
+            </span>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold italic text-ink">
+              Happening on Campus
+            </h2>
+          </div>
+
           <div className="relative w-full sm:w-72">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-inkSoft" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search events…"
+              placeholder="Search hackathons, talks…"
               className="w-full border-[1.5px] border-ink bg-paper py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:bg-paperAlt"
             />
           </div>
