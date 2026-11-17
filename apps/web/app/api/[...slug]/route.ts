@@ -9,7 +9,7 @@ const GROQ_MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
 const DEMO_USERS: Record<string, { id: string; name: string; email: string; usn?: string; roles: any[] }> = {
   "admin@konvene.dev": {
     id: "usr-admin-demo-id",
-    name: "Dr. K. S. Arvind (Dean)",
+    name: "Dr. K. S. Arvind",
     email: "admin@konvene.dev",
     roles: [{ role: "ADMIN", scopeType: "GLOBAL", scopeId: null }],
   },

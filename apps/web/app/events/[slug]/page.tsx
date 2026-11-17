@@ -140,11 +140,18 @@ export default function EventDetailPage() {
               </span>
               <button
                 type="button"
-                onClick={() =>
+                onClick={() => {
+                  const isStaffOrDean = Boolean(
+                    user?.roles?.some((r: any) => r.role === 'ADMIN' || r.role === 'FACULTY') ||
+                    user?.name?.includes('Dean') ||
+                    user?.name?.includes('Dr.')
+                  );
+                  const studentRecipient = !user || isStaffOrDean ? "Sunaina Mohapatra" : user.name;
+                  const studentUsn = !user || isStaffOrDean ? "ENG24CT0058" : (user.usn || "ENG24CT0058");
                   setCertPreview({
                     certId: "CERT-COPE3-DSU01",
-                    studentName: user?.name || "Sunaina Mohapatra",
-                    usn: user?.usn || "ENG24CT0058",
+                    studentName: studentRecipient,
+                    usn: studentUsn,
                     department: "School of Engineering, Dayananda Sagar University",
                     section: "UNCSW · Delegate of Germany",
                     eventTitle: "Dayananda Sagar University Model United Nations COPE 3",
@@ -154,8 +161,8 @@ export default function EventDetailPage() {
                     subjectCode: "HU301",
                     subjectName: "Professional Communication & Governance",
                     facultyName: "Dr. Seema Tharannum & Dr. Sai Prasad",
-                  })
-                }
+                  });
+                }}
                 className="btn-signal rounded-full px-3.5 py-1 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
               >
                 <Sparkles className="h-3 w-3" /> Preview Certificate

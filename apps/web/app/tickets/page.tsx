@@ -49,10 +49,17 @@ export default function TicketsPage() {
 
   function handleOpenCert(c: CertRow) {
     const isMun = c.event.title.includes("Model United Nations") || c.event.title.includes("COPE");
+    const isStaffOrDean = Boolean(
+      user?.roles?.some((r: any) => r.role === 'ADMIN' || r.role === 'FACULTY') ||
+      user?.name?.includes('Dean') ||
+      user?.name?.includes('Dr.')
+    );
+    const studentRecipient = !user || isStaffOrDean ? "Sunaina Mohapatra" : user.name;
+    const studentUsn = !user || isStaffOrDean ? "ENG24CT0058" : (user.usn || "ENG24CT0058");
     setActiveCert({
       certId: c.certId,
-      studentName: user?.name || "Sunaina Mohapatra",
-      usn: user?.usn || "ENG24CT0058",
+      studentName: studentRecipient,
+      usn: studentUsn,
       department: isMun ? "School of Engineering, Dayananda Sagar University" : "Department of Computer Science & Engineering",
       section: "5th Sem · Section A",
       eventTitle: c.event.title,
