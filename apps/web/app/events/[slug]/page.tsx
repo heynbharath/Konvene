@@ -5,11 +5,13 @@ import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
 import confetti from "canvas-confetti";
-import { Calendar, Clock, MapPin, Users, CheckCircle2 } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, CheckCircle2, Award, ExternalLink, Phone, Mail, Sparkles } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { StatusBadge } from "@/components/StatusBadge";
 import { categoryStyle } from "@/lib/utils";
+import { CertificateModal } from "@/components/CertificateModal";
+import { CertificateData } from "@/components/CollegeCertificate";
 
 interface FormField {
   key: string;
@@ -44,6 +46,7 @@ export default function EventDetailPage() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [certPreview, setCertPreview] = useState<CertificateData | null>(null);
 
   useEffect(() => {
     api<EventDetail>(`/events/${slug}`).then((e) => {
@@ -117,51 +120,132 @@ export default function EventDetailPage() {
       </div>
 
       {event.slug === "dsu-mun-cope-3" && (
-        <div className="mb-8 border-[2px] border-ink bg-[#15130F] text-paper p-6 shadow-hard space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-paper/20 pb-3">
+        <div className="mb-8 border-[2px] border-ink bg-[#15130F] text-paper p-6 shadow-hard space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-paper/20 pb-3.5">
             <div>
-              <span className="font-mono text-[10px] text-acid uppercase font-bold tracking-widest">
-                DSU COPE MUN III · "A Pass at the Infinite"
-              </span>
-              <h3 className="font-display text-xl font-bold text-white">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[10px] text-acid uppercase font-bold tracking-widest">
+                  DSU COPE MUN III · "A Pass at the Infinite"
+                </span>
+                <span className="text-paper/40">·</span>
+                <span className="font-mono text-[10px] text-paper/70">DSU Intra MUN 2026</span>
+              </div>
+              <h3 className="font-display text-2xl font-bold text-white mt-0.5">
                 Flagship Model United Nations Committees
               </h3>
             </div>
-            <span className="bg-acid text-ink font-mono text-xs font-bold px-3 py-1 rounded-full uppercase">
-              Prize Pool: ₹18,000+
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="bg-acid text-ink font-mono text-xs font-bold px-3 py-1 rounded-full uppercase shadow-sm">
+                Prize Pool: ₹18,000+
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  setCertPreview({
+                    certId: "CERT-COPE3-DSU01",
+                    studentName: user?.name || "Sunaina Mohapatra",
+                    usn: user?.usn || "ENG24CT0058",
+                    department: "School of Engineering, Dayananda Sagar University",
+                    section: "UNCSW · Delegate of Germany",
+                    eventTitle: "Dayananda Sagar University Model United Nations COPE 3",
+                    clubName: "DSU MUNSoc",
+                    eventDate: "October 23 – 24, 2026",
+                    venue: "Dayananda Sagar University (DSU Campus), Bengaluru",
+                    subjectCode: "HU301",
+                    subjectName: "Professional Communication & Governance",
+                    facultyName: "Dr. Seema Tharannum & Dr. Sai Prasad",
+                  })
+                }
+                className="btn-signal rounded-full px-3.5 py-1 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
+              >
+                <Sparkles className="h-3 w-3" /> Preview Certificate
+              </button>
+            </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 text-xs font-mono">
-            <div className="bg-[#24211A] border border-paper/20 p-3 rounded">
-              <span className="text-acid font-bold">1. AIPPM (All India Political Parties Meet)</span>
-              <p className="text-paper/70 text-[11px] mt-1 font-sans">
-                Agenda: One Nation, One Election: Timely & Inclusive Elections and Administrative Reforms.
+            <div className="bg-[#24211A] border border-paper/20 p-3.5 rounded hover:border-acid/60 transition-colors">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-acid font-bold">1. AIPPM</span>
+                <span className="text-[10px] bg-paper/10 text-paper px-2 py-0.5 rounded">Single Delegate</span>
+              </div>
+              <p className="text-paper font-semibold text-xs">All India Political Parties Meet</p>
+              <p className="text-paper/70 text-[11px] mt-1 font-sans leading-relaxed">
+                Agenda: One Nation, One Election: Ensuring Timely & Inclusive Elections, with Special Emphasis on Electoral-Roll Management and Administrative Reforms.
               </p>
             </div>
-            <div className="bg-[#24211A] border border-paper/20 p-3 rounded">
-              <span className="text-acid font-bold">2. UNCSW (Status of Women)</span>
-              <p className="text-paper/70 text-[11px] mt-1 font-sans">
-                Agenda: Empowerment of Women through Improvements in Gender Equality & Economic Independence.
+
+            <div className="bg-[#24211A] border border-paper/20 p-3.5 rounded hover:border-acid/60 transition-colors">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-acid font-bold">2. UNCSW</span>
+                <span className="text-[10px] bg-paper/10 text-paper px-2 py-0.5 rounded">Single Delegate</span>
+              </div>
+              <p className="text-paper font-semibold text-xs">Commission on the Status of Women</p>
+              <p className="text-paper/70 text-[11px] mt-1 font-sans leading-relaxed">
+                Agenda: Empowerment of Women through Improvements in Gender Equality and Economic Independence.
               </p>
             </div>
-            <div className="bg-[#24211A] border border-paper/20 p-3 rounded">
-              <span className="text-acid font-bold">3. UNODC (Drugs & Crime - Double Delegate)</span>
-              <p className="text-paper/70 text-[11px] mt-1 font-sans">
+
+            <div className="bg-[#24211A] border border-paper/20 p-3.5 rounded hover:border-acid/60 transition-colors">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-acid font-bold">3. UNODC</span>
+                <span className="text-[10px] bg-acid text-ink font-bold px-2 py-0.5 rounded">Double Delegate</span>
+              </div>
+              <p className="text-paper font-semibold text-xs">Office on Drugs and Crime</p>
+              <p className="text-paper/70 text-[11px] mt-1 font-sans leading-relaxed">
                 Agenda: Preventing human and drug trafficking through international cross-border cooperation.
               </p>
             </div>
-            <div className="bg-[#24211A] border border-paper/20 p-3 rounded">
-              <span className="text-acid font-bold">4. IPC (International Press Corps)</span>
-              <p className="text-paper/70 text-[11px] mt-1 font-sans">
-                Journalism, live committee investigation, press conferences, and editorial reporting.
+
+            <div className="bg-[#24211A] border border-paper/20 p-3.5 rounded hover:border-acid/60 transition-colors">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-acid font-bold">4. IPC</span>
+                <span className="text-[10px] bg-paper/10 text-paper px-2 py-0.5 rounded">Press Corps</span>
+              </div>
+              <p className="text-paper font-semibold text-xs">International Press Corps</p>
+              <p className="text-paper/70 text-[11px] mt-1 font-sans leading-relaxed">
+                Mandate: Report, conduct live press conferences, and question delegates across all committees.
               </p>
             </div>
           </div>
 
-          <div className="pt-2 flex items-center justify-between text-xs text-paper/70 font-mono">
-            <span>Coordinators: Dr. Seema Tharannum & Dr. Sai Prasad</span>
-            <span>Signatory: Dr. Udaya Kumar Reddy K. R. (Dean)</span>
+          {/* Quick External Links */}
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <a
+              href="https://docs.google.com/spreadsheets/d/1s6RuSa6RZkvZpHEFHXY0pAVZaMvS3TR23hRsWK1NEAY/edit?usp=drivesdk"
+              target="_blank"
+              rel="noreferrer"
+              className="btn-outline border-paper/40 text-paper hover:bg-paper/10 text-xs font-mono uppercase px-3 py-1.5 rounded flex items-center gap-1.5"
+            >
+              <ExternalLink className="h-3.5 w-3.5 text-acid" /> View Live Country Portfolio Matrix
+            </a>
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSeLck_D2M8_dn_pv1fMxjKPZ4hm-fCqzOpyMCIhU5qAticMpw/viewform"
+              target="_blank"
+              rel="noreferrer"
+              className="btn-outline border-paper/40 text-paper hover:bg-paper/10 text-xs font-mono uppercase px-3 py-1.5 rounded flex items-center gap-1.5"
+            >
+              <ExternalLink className="h-3.5 w-3.5 text-acid" /> Official DSU MUN Form Portal
+            </a>
+          </div>
+
+          {/* Secretariat Contact Helpline */}
+          <div className="pt-3 border-t border-paper/10 text-xs font-mono text-paper/70">
+            <p className="text-acid font-bold uppercase text-[10px] mb-1.5">DSU COPE MUN III Secretariat Helpline:</p>
+            <div className="flex flex-wrap gap-4 text-[11px]">
+              <span className="flex items-center gap-1">
+                <Phone className="h-3 w-3 text-acid" /> Aditiya Bidappa (SG): <strong className="text-white">+91 86182 20160</strong>
+              </span>
+              <span className="flex items-center gap-1">
+                <Phone className="h-3 w-3 text-acid" /> Lakshmi Shree (Chief Advisor): <strong className="text-white">+91 74063 32416</strong>
+              </span>
+              <span className="flex items-center gap-1">
+                <Phone className="h-3 w-3 text-acid" /> K Suchith (Delegate Affairs): <strong className="text-white">+91 73493 95902</strong>
+              </span>
+              <span className="flex items-center gap-1">
+                <Mail className="h-3 w-3 text-acid" /> <strong className="text-white">dsumunsoc@gmail.com</strong>
+              </span>
+            </div>
           </div>
         </div>
       )}
@@ -235,6 +319,8 @@ export default function EventDetailPage() {
           </>
         )}
       </div>
+
+      <CertificateModal data={certPreview} onClose={() => setCertPreview(null)} />
     </div>
   );
 }
