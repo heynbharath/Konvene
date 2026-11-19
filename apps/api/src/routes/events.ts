@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { AuthedRequest, requireAuth, loadRoles, hasScopedRole } from "../lib/rbac";
+import { syncEventToMonday, updateEventStatusOnMonday } from "../lib/monday";
 
 export const eventsRouter = Router();
 
@@ -90,8 +91,19 @@ eventsRouter.post("/", requireAuth, loadRoles, async (req: AuthedRequest, res) =
       ticketTypes: { create: ticketTypes },
       form: { create: { schemaJson: JSON.stringify(formFields) } },
     },
-    include: { ticketTypes: true, form: true },
+    include: { ticketTypes: true, form: true, club: true },
   });
+
+  // Sync to monday.com board asynchronously
+  syncEventToMonday({
+    id: event.id,
+    title: event.title,
+    clubName: event.club?.name,
+    venue: event.venue,
+    startAt: event.startAt,
+    capacity: event.capacity,
+    status: event.status,
+  }).catch((err) => console.error("[monday.com] Auto-sync error on event creation:", err));
 
   res.status(201).json(event);
 });
@@ -168,6 +180,7 @@ eventsRouter.post("/:id/submit-for-approval", requireAuth, loadRoles, async (req
   await prisma.auditLog.create({
     data: { actorUserId: req.userId, action: "EVENT_SUBMITTED_FOR_APPROVAL", targetType: "Event", targetId: event.id },
   });
+  updateEventStatusOnMonday(event.id, "PENDING_APPROVAL").catch((err) => console.error("[monday.com] Sync error:", err));
   res.json(updated);
 });
 
@@ -186,6 +199,7 @@ eventsRouter.post("/:id/approve", requireAuth, loadRoles, async (req: AuthedRequ
   await prisma.auditLog.create({
     data: { actorUserId: req.userId, action: "EVENT_APPROVED", targetType: "Event", targetId: event.id },
   });
+  updateEventStatusOnMonday(event.id, "PUBLISHED").catch((err) => console.error("[monday.com] Sync error:", err));
   res.json(updated);
 });
 
@@ -213,6 +227,7 @@ eventsRouter.post("/:id/reject", requireAuth, loadRoles, async (req: AuthedReque
       afterJson: JSON.stringify({ reason: parsed.data.reason }),
     },
   });
+  updateEventStatusOnMonday(event.id, "REJECTED").catch((err) => console.error("[monday.com] Sync error:", err));
   res.json(updated);
 });
 
@@ -226,6 +241,7 @@ eventsRouter.post("/:id/revise", requireAuth, loadRoles, async (req: AuthedReque
   if (event.status !== "REJECTED") return res.status(409).json({ error: "Only rejected events can be revised" });
 
   const updated = await prisma.event.update({ where: { id: event.id }, data: { status: "DRAFT" } });
+  updateEventStatusOnMonday(event.id, "DRAFT").catch((err) => console.error("[monday.com] Sync error:", err));
   res.json(updated);
 });
 

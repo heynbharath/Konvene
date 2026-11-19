@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
+import { MondayIntegrationCard } from "@/components/MondayIntegrationCard";
 
 interface AdminStats {
   totalStudents: number;
@@ -110,6 +111,9 @@ export default function AdminDashboardPage() {
           <p className="text-[11px] text-inkSoft mt-1">Academic Year 2026-27</p>
         </div>
       </div>
+
+      {/* Monday.com Agile & Operations Integration */}
+      <MondayIntegrationCard />
 
       {/* Department Breakdown & Audit Logs */}
       <div className="grid gap-6 lg:grid-cols-2">

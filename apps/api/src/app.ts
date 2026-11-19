@@ -13,6 +13,7 @@ import { certificatesRouter } from "./routes/certificates";
 import { statsRouter } from "./routes/stats";
 import { academicsRouter } from "./routes/academics";
 import { aiRouter } from "./routes/ai";
+import { mondayRouter } from "./routes/monday";
 
 export const app = express();
 
@@ -39,3 +40,4 @@ app.use("/", certificatesRouter); // exposes /events/:id/issue-certificates and 
 app.use("/", statsRouter); // exposes /stats
 app.use("/", academicsRouter); // exposes /departments and /subjects
 app.use("/ai", aiRouter); // exposes /ai/chat, /ai/status, /ai/action
+app.use("/monday", mondayRouter); // exposes /monday/status, /monday/sync-all, /monday/webhook

@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { api, ApiError } from "@/lib/api";
 import { StatusBadge } from "@/components/StatusBadge";
 import { AttendanceScanner } from "@/components/AttendanceScanner";
+import { MondayIntegrationCard } from "@/components/MondayIntegrationCard";
 
 interface ClubDetail {
   id: string;
@@ -256,6 +257,9 @@ export default function ClubDashboardPage() {
         </form>
         {memberMsg && <p className="mt-3 text-sm font-medium">{memberMsg}</p>}
       </div>
+
+      {/* Monday.com Agile & Operations Integration */}
+      <MondayIntegrationCard />
     </div>
   );
 }
