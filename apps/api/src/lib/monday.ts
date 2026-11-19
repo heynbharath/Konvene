@@ -61,6 +61,7 @@ export async function getMondayBoardInfo() {
       boards (ids: [$boardId]) {
         id
         name
+        url
         columns {
           id
           title

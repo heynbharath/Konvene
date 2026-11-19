@@ -37,6 +37,7 @@ mondayRouter.get("/status", async (_req, res) => {
     board: {
       id: board.id,
       name: board.name,
+      url: board.url,
       columnsCount: board.columns?.length ?? 0,
       groups: board.groups?.map((g: any) => ({ id: g.id, title: g.title })) ?? [],
     },

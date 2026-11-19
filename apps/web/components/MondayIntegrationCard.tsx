@@ -10,6 +10,7 @@ interface MondayStatus {
   board?: {
     id: string;
     name: string;
+    url?: string;
     columnsCount: number;
     groups: Array<{ id: string; title: string }>;
   };
@@ -63,7 +64,7 @@ export function MondayIntegrationCard() {
   };
 
   const boardId = status?.board?.id || "5032567305";
-  const mondayUrl = `https://n-bharath.monday.com/boards/${boardId}`;
+  const mondayUrl = status?.board?.url || `https://view.monday.com/boards/${boardId}`;
 
   return (
     <div className="card p-6 bg-paper border-[2px] border-ink shadow-hard space-y-4">
